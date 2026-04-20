@@ -72,8 +72,24 @@ def analyse_single(article, client):
 
 def run_analysis_batch(session, anthropic_api_key):
     from db.models import Article, Analysis
+    from datetime import date
+
+    # Check daily limit
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    done_today = session.query(Analysis).filter(
+        Analysis.status == "done",
+        Analysis.analysed_at >= today_start
+    ).count()
+
+    remaining = DAILY_ANALYSIS_LIMIT - done_today
+    if remaining <= 0:
+        logger.info("Daily analysis limit reached (%d/%d). Skipping.", done_today, DAILY_ANALYSIS_LIMIT)
+        return
+
+    logger.info("Daily limit: %d/%d used, will analyse up to %d articles.", done_today, DAILY_ANALYSIS_LIMIT, remaining)
+
     analysed_ids = {r.article_id for r in session.query(Analysis).filter_by(status="done").all()}
-    pending = session.query(Article).filter(~Article.id.in_(analysed_ids)).order_by(Article.scraped_at.desc()).limit(100).all()
+    pending = session.query(Article).filter(~Article.id.in_(analysed_ids)).order_by(Article.scraped_at.desc()).limit(remaining).all()
     if not pending:
         logger.info("No pending articles.")
         return
@@ -83,4 +99,15 @@ def run_analysis_batch(session, anthropic_api_key):
         parsed = analyse_single(data, client)
         write_analysis(session, art.id, parsed, json.dumps(parsed or {}), MODEL)
         time.sleep(0.5)
-    logger.info("Batch done: %d articles", len(pending))
+    logger.info("Batch done: %d articles analysed today total.", done_today + len(pending))
+
+DAILY_ANALYSIS_LIMIT = 10
+
+def get_todays_analysis_count(session):
+    from db.models import Analysis
+    from datetime import date
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    return session.query(Analysis).filter(
+        Analysis.status == "done",
+        Analysis.analysed_at >= today_start
+    ).count()
