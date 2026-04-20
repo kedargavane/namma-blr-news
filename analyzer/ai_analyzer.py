@@ -1,4 +1,4 @@
-import json, logging, time
+import json, logging, time, os
 from datetime import datetime
 from typing import Optional
 import anthropic
@@ -6,6 +6,7 @@ import anthropic
 logger = logging.getLogger(__name__)
 MODEL = "claude-sonnet-4-20250514"
 MAX_TOKENS = 900
+DAILY_ANALYSIS_LIMIT = 10
 
 SYSTEM_PROMPT = """You are a civic intelligence analyst specialising in Bengaluru, India.
 Analyse news headlines about urban governance, environment, and law.
@@ -32,10 +33,15 @@ def build_prompt(article):
         excerpt=(article.get("excerpt","") or "")[:300])
 
 def parse_analysis(raw):
-    clean = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
+    clean = raw.strip()
+    if clean.startswith("```"):
+        clean = "\n".join(clean.split("\n")[1:])
+    if clean.endswith("```"):
+        clean = clean.rsplit("```",1)[0]
     try:
-        return json.loads(clean)
-    except:
+        return json.loads(clean.strip())
+    except Exception as e:
+        logger.error("JSON parse error: %s | raw: %s", e, raw[:200])
         return None
 
 def write_analysis(session, article_id, parsed, raw, model):
@@ -60,12 +66,22 @@ def write_analysis(session, article_id, parsed, raw, model):
         row.status = "failed"
     session.commit()
 
-def analyse_single(article, client):
+def analyse_single(article, client=None):
+    # Always read key fresh from environment
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    logger.info("analyse_single: key length=%d, starts=%s", len(api_key), api_key[:10] if api_key else "EMPTY")
+    if not api_key:
+        logger.error("ANTHROPIC_API_KEY is empty!")
+        return None
     try:
-        msg = client.messages.create(model=MODEL, max_tokens=MAX_TOKENS,
+        c = anthropic.Anthropic(api_key=api_key)
+        msg = c.messages.create(
+            model=MODEL, max_tokens=MAX_TOKENS,
             system=SYSTEM_PROMPT,
             messages=[{"role":"user","content":build_prompt(article)}])
-        return parse_analysis(msg.content[0].text)
+        raw = msg.content[0].text
+        logger.info("Claude raw response: %s", raw[:200])
+        return parse_analysis(raw)
     except Exception as e:
         logger.error("Analysis failed: %s", e)
         return None
@@ -74,7 +90,6 @@ def run_analysis_batch(session, anthropic_api_key):
     from db.models import Article, Analysis
     from datetime import date
 
-    # Check daily limit
     today_start = datetime.combine(date.today(), datetime.min.time())
     done_today = session.query(Analysis).filter(
         Analysis.status == "done",
@@ -83,31 +98,24 @@ def run_analysis_batch(session, anthropic_api_key):
 
     remaining = DAILY_ANALYSIS_LIMIT - done_today
     if remaining <= 0:
-        logger.info("Daily analysis limit reached (%d/%d). Skipping.", done_today, DAILY_ANALYSIS_LIMIT)
+        logger.info("Daily limit reached (%d/%d).", done_today, DAILY_ANALYSIS_LIMIT)
         return
 
-    logger.info("Daily limit: %d/%d used, will analyse up to %d articles.", done_today, DAILY_ANALYSIS_LIMIT, remaining)
+    logger.info("Daily limit: %d/%d used, will analyse up to %d.", done_today, DAILY_ANALYSIS_LIMIT, remaining)
 
     analysed_ids = {r.article_id for r in session.query(Analysis).filter_by(status="done").all()}
-    pending = session.query(Article).filter(~Article.id.in_(analysed_ids)).order_by(Article.scraped_at.desc()).limit(remaining).all()
+    pending = session.query(Article).filter(
+        ~Article.id.in_(analysed_ids)
+    ).order_by(Article.scraped_at.desc()).limit(remaining).all()
+
     if not pending:
         logger.info("No pending articles.")
         return
-    client = anthropic.Anthropic(api_key=anthropic_api_key)
+
     for art in pending:
-        data = {"id":art.id,"title":art.title,"source":art.source,"category":art.category,"location":art.location,"excerpt":art.excerpt}
-        parsed = analyse_single(data, client)
+        data = {"id":art.id,"title":art.title,"source":art.source,
+                "category":art.category,"location":art.location,"excerpt":art.excerpt}
+        parsed = analyse_single(data)
         write_analysis(session, art.id, parsed, json.dumps(parsed or {}), MODEL)
         time.sleep(0.5)
-    logger.info("Batch done: %d articles analysed today total.", done_today + len(pending))
-
-DAILY_ANALYSIS_LIMIT = 10
-
-def get_todays_analysis_count(session):
-    from db.models import Analysis
-    from datetime import date
-    today_start = datetime.combine(date.today(), datetime.min.time())
-    return session.query(Analysis).filter(
-        Analysis.status == "done",
-        Analysis.analysed_at >= today_start
-    ).count()
+    logger.info("Batch done: %d articles analysed today.", done_today + len(pending))
