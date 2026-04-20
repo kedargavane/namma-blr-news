@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, JSON, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, JSON, ForeignKey, text
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 
@@ -60,6 +60,14 @@ class ScrapeLog(Base):
 def get_engine(db_path="blr_news.db"):
     engine = create_engine(f"sqlite:///{db_path}", echo=False)
     Base.metadata.create_all(engine)
+    # migrate: add new columns if they don't exist
+    with engine.connect() as conn:
+        for col in ["global_comparison", "timeline"]:
+            try:
+                conn.execute(text(f"ALTER TABLE analysis ADD COLUMN {col} JSON"))
+                conn.commit()
+            except Exception:
+                pass
     return engine
 
 def get_session(engine):
