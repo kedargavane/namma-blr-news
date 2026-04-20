@@ -5,23 +5,40 @@ import anthropic
 
 logger = logging.getLogger(__name__)
 MODEL = "claude-sonnet-4-5"
-MAX_TOKENS = 900
+MAX_TOKENS = 1800
 DAILY_ANALYSIS_LIMIT = 20
 
 SYSTEM_PROMPT = """You are a civic intelligence analyst specialising in Bengaluru, India.
 Analyse news headlines about urban governance, environment, and law.
 Always respond with ONLY a valid JSON object — no markdown, no explanation."""
 
-PROMPT_TEMPLATE = """Analyse this Bengaluru civic news and return ONLY a JSON object:
+PROMPT_TEMPLATE = """Analyse this Bengaluru civic news and return ONLY a JSON object with exactly this structure:
 {{
   "severity": "High" or "Medium" or "Low",
   "severity_note": "<one sentence on urgency>",
-  "laws": ["<specific Indian act + section>"],
-  "legal_points": ["<3-4 legal implications as full sentences>"],
-  "civic_points": ["<3-4 civic implications as full sentences>"],
-  "watch_points": ["<3 things to monitor next>"],
-  "entities": ["<agencies, courts, locations, case numbers>"]
+  "laws": ["<specific Indian act + section number>"],
+  "legal_points": ["<3-4 specific legal implications as full sentences>"],
+  "civic_points": ["<3-4 specific civic/urban implications as full sentences>"],
+  "watch_points": ["<3 concrete things journalists or citizens should monitor>"],
+  "entities": ["<agencies, courts, locations, case numbers, organisations>"],
+  "global_comparison": {{
+    "summary": "<2-3 sentences: how similar issues are handled in other cities or countries>",
+    "examples": [
+      {{"city": "<City, Country>", "approach": "<one sentence on what they did differently or better>"}},
+      {{"city": "<City, Country>", "approach": "<one sentence on what they did differently or better>"}}
+    ]
+  }},
+  "timeline": [
+    {{"year": "<YYYY or YYYY Mon>", "event": "<one sentence describing what happened>"}},
+    {{"year": "<YYYY or YYYY Mon>", "event": "<one sentence describing what happened>"}},
+    {{"year": "<YYYY or YYYY Mon>", "event": "<one sentence — current event being reported>"}},
+    {{"year": "<YYYY or YYYY Mon>", "event": "<one sentence — likely next development>"}}
+  ]
 }}
+
+For timeline: include 3-5 entries showing the history of this specific issue leading up to today, plus one predicted next step. Order chronologically oldest to newest.
+For global_comparison: pick 2 real cities that have faced similar urban/environmental challenges and describe their approach concisely.
+
 Headline: {title}
 Source: {source} | Category: {category} | Location: {location}
 Excerpt: {excerpt}"""
@@ -62,6 +79,8 @@ def write_analysis(session, article_id, parsed, raw, model):
         row.civic_points = parsed.get("civic_points",[])
         row.watch_points = parsed.get("watch_points",[])
         row.entities = parsed.get("entities",[])
+        row.global_comparison = parsed.get("global_comparison",{})
+        row.timeline = parsed.get("timeline",[])
     else:
         row.status = "failed"
     session.commit()

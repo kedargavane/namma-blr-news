@@ -81,6 +81,8 @@ def serialize_article(art: Article) -> dict:
             "civic_points":  a.civic_points or [],
             "watch_points":  a.watch_points or [],
             "entities":      a.entities or [],
+            "global_comparison": a.global_comparison or {},
+            "timeline":      a.timeline or [],
             "analysed_at":   a.analysed_at.isoformat() if a.analysed_at else None,
         } if a else None,
     }

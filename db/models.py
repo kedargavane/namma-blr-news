@@ -34,8 +34,10 @@ class Analysis(Base):
     civic_points    = Column(JSON)
     watch_points    = Column(JSON)
     entities        = Column(JSON)
-    raw_response    = Column(Text)
-    article         = relationship("Article", back_populates="analysis")
+    raw_response      = Column(Text)
+    global_comparison = Column(JSON)
+    timeline          = Column(JSON)
+    article           = relationship("Article", back_populates="analysis")
 
 class Keyword(Base):
     __tablename__ = "keywords"
