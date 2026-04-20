@@ -249,9 +249,12 @@ def delete_keyword(keyword_id: int):
 
 
 # ── Serve frontend ────────────────────────────────────────────────────────────
-from fastapi.staticfiles import StaticFiles
-import os
 
-_frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
-if os.path.exists(_frontend_dir):
-    app.mount("/", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
+
+# ── Serve frontend — MUST be last ────────────────────────────────────────────
+from fastapi.staticfiles import StaticFiles
+import os as _os
+
+_frontend = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "frontend")
+if _os.path.exists(_frontend):
+    app.mount("/", StaticFiles(directory=_frontend, html=True), name="frontend")
