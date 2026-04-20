@@ -4,7 +4,7 @@ from typing import Optional
 import anthropic
 
 logger = logging.getLogger(__name__)
-MODEL = "claude-sonnet-4-20250514"
+MODEL = "claude-sonnet-4-5"
 MAX_TOKENS = 900
 DAILY_ANALYSIS_LIMIT = 10
 
