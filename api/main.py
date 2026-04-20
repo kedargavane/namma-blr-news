@@ -1,6 +1,7 @@
 import logging
 import os
 import json
+import traceback
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -28,23 +29,17 @@ async def lifespan(app: FastAPI):
             scrape_job()
             analysis_job()
         except Exception as e:
-            logger.warning("Startup job error (non-fatal): %s", e)
+            logger.warning("Startup job error: %s", e)
     scheduler = start_scheduler()
     yield
     scheduler.shutdown()
 
 app = FastAPI(title="Namma BLR News API", version="1.0.0", lifespan=lifespan)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "anthropic_key_set": bool(CONFIG["anthropic_api_key"])}
 
 def serialize_article(art):
     a = art.analysis
@@ -98,16 +93,39 @@ def get_article(article_id: int):
 
 @app.post("/api/articles/{article_id}/analyze")
 def trigger_analysis(article_id: int):
+    logger.info("=== ANALYZE REQUEST for article %d ===", article_id)
     session = get_session(engine)
     try:
         art = session.query(Article).filter_by(id=article_id).first()
-        if not art: raise HTTPException(status_code=404, detail="Not found")
-        client = anthropic.Anthropic(api_key=CONFIG["anthropic_api_key"])
-        data = {"id": art.id, "title": art.title, "source": art.source,
-                "category": art.category, "location": art.location, "excerpt": art.excerpt}
+        if not art:
+            logger.error("Article %d not found", article_id)
+            raise HTTPException(status_code=404, detail="Article not found")
+
+        api_key = CONFIG["anthropic_api_key"]
+        logger.info("API key present: %s, length: %d", bool(api_key), len(api_key))
+
+        if not api_key:
+            raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+
+        client = anthropic.Anthropic(api_key=api_key)
+        data = {
+            "id": art.id, "title": art.title, "source": art.source,
+            "category": art.category, "location": art.location, "excerpt": art.excerpt
+        }
+        logger.info("Calling Claude for: %s", art.title[:60])
         parsed = analyse_single(data, client)
+        logger.info("Claude result: %s", parsed)
+
         write_analysis(session, art.id, parsed, json.dumps(parsed or {}), "claude-sonnet-4-20250514")
-        return serialize_article(session.query(Article).filter_by(id=article_id).first())
+        result = serialize_article(session.query(Article).filter_by(id=article_id).first())
+        logger.info("Analysis done, returning result")
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Analysis error: %s\n%s", e, traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         session.close()
 
