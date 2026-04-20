@@ -340,58 +340,87 @@ function renderAnalysis(a, an) {
   const sevClass = {High:"sev-high",Medium:"sev-medium",Low:"sev-low"}[an.severity]||"sev-medium";
   const sevWidth = {High:"85%",Medium:"55%",Low:"28%"}[an.severity]||"55%";
   const sevColor = {High:"#E24B4A",Medium:"#BA7517",Low:"#1D9E75"}[an.severity]||"#BA7517";
-  return `
-    <div class="analysis-section">
-      <div class="analysis-label">Severity</div>
-      <div class="sev-row">
-        <span class="sev-tag ${sevClass}">${an.severity}</span>
-        <div class="sev-track"><div class="sev-fill" style="width:${sevWidth};background:${sevColor}"></div></div>
-      </div>
-      <div class="sev-note">${sanitize(an.severity_note||"")}</div>
+
+  let html = "";
+
+  html += `<div class="analysis-section">
+    <div class="analysis-label">Severity</div>
+    <div class="sev-row">
+      <span class="sev-tag ${sevClass}">${an.severity}</span>
+      <div class="sev-track"><div class="sev-fill" style="width:${sevWidth};background:${sevColor}"></div></div>
     </div>
-    ${(an.laws||[]).length?`<div class="analysis-section">
+    <div class="sev-note">${sanitize(an.severity_note||"")}</div>
+  </div>`;
+
+  if ((an.laws||[]).length) {
+    html += `<div class="analysis-section">
       <div class="analysis-label">Laws & statutes triggered</div>
       <div>${an.laws.map(l=>`<span class="law-chip">${sanitize(l)}</span>`).join("")}</div>
-    </div>`:""}
-    ${(an.legal_points||[]).length?`<div class="analysis-section">
+    </div>`;
+  }
+
+  if ((an.legal_points||[]).length) {
+    html += `<div class="analysis-section">
       <div class="analysis-label">Legal implications</div>
       ${an.legal_points.map(p=>`<div class="impl-item"><div class="impl-dot" style="background:#378ADD"></div><div class="impl-text">${sanitize(p)}</div></div>`).join("")}
-    </div>`:""}
-    ${(an.civic_points||[]).length?`<div class="analysis-section">
+    </div>`;
+  }
+
+  if ((an.civic_points||[]).length) {
+    html += `<div class="analysis-section">
       <div class="analysis-label">Civic implications</div>
       ${an.civic_points.map(p=>`<div class="impl-item"><div class="impl-dot" style="background:var(--green)"></div><div class="impl-text">${sanitize(p)}</div></div>`).join("")}
-    </div>`:""}
-    ${(an.watch_points||[]).length?`<div class="analysis-section">
+    </div>`;
+  }
+
+  if ((an.watch_points||[]).length) {
+    html += `<div class="analysis-section">
       <div class="analysis-label">What to watch next</div>
       ${an.watch_points.map(w=>`<div class="watch-item">${sanitize(w)}</div>`).join("")}
-    </div>`:""}
-    ${(an.entities||[]).length?`<div class="analysis-section">
+    </div>`;
+  }
+
+  if ((an.entities||[]).length) {
+    html += `<div class="analysis-section">
       <div class="analysis-label">Key entities</div>
       <div class="entity-wrap">${an.entities.map(e=>`<span class="entity-chip">${sanitize(e)}</span>`).join("")}</div>
-    </div>`:""`}
-    ${(an.timeline||[]).length?`<div class="analysis-section">
-        <div class="analysis-label">Timeline</div>
-        <div style="position:relative;padding-left:16px;border-left:2px solid var(--border2);margin-top:4px">
-          ${an.timeline.map((t,i)=>`
-            <div style="position:relative;margin-bottom:${i===an.timeline.length-1?0:12}px">
-              <div style="position:absolute;left:-20px;top:3px;width:8px;height:8px;border-radius:50%;background:${i===an.timeline.length-1?'var(--green)':i===an.timeline.length-2?'var(--green-mid)':'var(--border2)'};border:2px solid var(--bg2)"></div>
-              <div style="font-size:10px;font-weight:500;color:${i===an.timeline.length-1?'var(--green-dark)':'var(--text3)'};margin-bottom:2px">${sanitize(t.year||"")}</div>
-              <div style="font-size:11.5px;color:${i===an.timeline.length-1?'var(--text)':'var(--text2)'};line-height:1.5">${sanitize(t.event||"")}</div>
-            </div>`).join("")}
-        </div>
-      </div>`:""}
-    ${an.global_comparison&&an.global_comparison.summary?`<div class="analysis-section">
-        <div class="analysis-label">Global comparison</div>
-        <div style="font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:10px">${sanitize(an.global_comparison.summary||"")}</div>
-        ${(an.global_comparison.examples||[]).map(ex=>`
-          <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:500;background:var(--blue-light);color:var(--blue-dark);padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0">${sanitize(ex.city||"")}</div>
-            <div style="font-size:11.5px;color:var(--text2);line-height:1.5">${sanitize(ex.approach||"")}</div>
-          </div>`).join("")}
-      </div>`:""}` ;
+    </div>`;
+  }
 
+  if ((an.timeline||[]).length) {
+    html += `<div class="analysis-section">
+      <div class="analysis-label">Timeline</div>
+      <div style="position:relative;padding-left:16px;border-left:2px solid var(--border2);margin-top:4px">
+        ${an.timeline.map((t,i) => {
+          const isLast = i === an.timeline.length - 1;
+          const isSecondLast = i === an.timeline.length - 2;
+          const dotColor = isLast ? "var(--green)" : isSecondLast ? "var(--green-mid)" : "var(--border2)";
+          const yearColor = isLast ? "var(--green-dark)" : "var(--text3)";
+          const textColor = isLast ? "var(--text)" : "var(--text2)";
+          return `<div style="position:relative;margin-bottom:${isLast?0:12}px">
+            <div style="position:absolute;left:-20px;top:3px;width:8px;height:8px;border-radius:50%;background:${dotColor};border:2px solid var(--bg2)"></div>
+            <div style="font-size:10px;font-weight:500;color:${yearColor};margin-bottom:2px">${sanitize(t.year||"")}</div>
+            <div style="font-size:11.5px;color:${textColor};line-height:1.5">${sanitize(t.event||"")}</div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+  }
 
+  if (an.global_comparison && an.global_comparison.summary) {
+    html += `<div class="analysis-section">
+      <div class="analysis-label">Global comparison</div>
+      <div style="font-size:11.5px;color:var(--text2);line-height:1.7;margin-bottom:10px">${sanitize(an.global_comparison.summary||"")}</div>
+      ${(an.global_comparison.examples||[]).map(ex=>`
+        <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;padding:8px;background:var(--bg);border-radius:6px;border:1px solid var(--border)">
+          <div style="font-size:10px;font-weight:500;background:var(--blue-light);color:var(--blue-dark);padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0">${sanitize(ex.city||"")}</div>
+          <div style="font-size:11.5px;color:var(--text2);line-height:1.5">${sanitize(ex.approach||"")}</div>
+        </div>`).join("")}
+    </div>`;
+  }
 
+  return html;
+}
 function renderReader(a) {
   const c    = catOf(a);
   const pub  = a.published_at ? new Date(a.published_at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "";
