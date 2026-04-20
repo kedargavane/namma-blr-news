@@ -37,6 +37,16 @@ class Analysis(Base):
     raw_response    = Column(Text)
     article         = relationship("Article", back_populates="analysis")
 
+class Keyword(Base):
+    __tablename__ = "keywords"
+    id         = Column(Integer, primary_key=True)
+    word       = Column(String(120), unique=True, nullable=False, index=True)
+    category   = Column(String(32), default="")
+    enabled    = Column(Boolean, default=True)
+    is_default = Column(Boolean, default=False)
+    hit_count  = Column(Integer, default=0)
+    added_at   = Column(DateTime, default=datetime.utcnow)
+
 class ScrapeLog(Base):
     __tablename__ = "scrape_log"
     id           = Column(Integer, primary_key=True)
@@ -53,3 +63,30 @@ def get_engine(db_path="blr_news.db"):
 def get_session(engine):
     Session = sessionmaker(bind=engine)
     return Session()
+
+DEFAULT_KEYWORDS = [
+    ("bengaluru","env"),("bangalore","env"),("lake","env"),("wetland","env"),
+    ("forest","env"),("tree","env"),("encroachment","env"),("sewage","env"),
+    ("pollution","env"),("green belt","env"),("buffer zone","env"),("wildlife","env"),
+    ("biodiversity","env"),("air quality","env"),("aqi","env"),("water body","env"),
+    ("stormwater","env"),("turahalli","env"),("bellandur","env"),("varthur","env"),
+    ("hebbal","env"),("high court","legal"),("supreme court","legal"),("ngt","legal"),
+    ("national green tribunal","legal"),("pil","legal"),("stay order","legal"),
+    ("fir","legal"),("court order","legal"),("karnataka hc","legal"),
+    ("suo motu","legal"),("contempt","legal"),("bbmp","govt"),("bwssb","govt"),
+    ("bda","govt"),("bmrcl","govt"),("karnataka govt","govt"),("master plan","govt"),
+    ("notification","govt"),("circular","govt"),("directive","govt"),("swm","govt"),
+    ("metro","infra"),("flyover","infra"),("road widening","infra"),
+    ("white-topping","infra"),("infrastructure","infra"),("elevated","infra"),
+    ("water supply","civic"),("garbage","civic"),("solid waste","civic"),
+    ("pothole","civic"),("footpath","civic"),("ward","civic"),
+    ("drainage","civic"),("flood","civic"),("urban","civic"),
+]
+
+def seed_keywords(session):
+    existing = session.query(Keyword).count()
+    if existing > 0:
+        return
+    for word, cat in DEFAULT_KEYWORDS:
+        session.add(Keyword(word=word, category=cat, enabled=True, is_default=True))
+    session.commit()

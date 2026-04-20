@@ -3,7 +3,7 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
-from db.models import Article, Analysis, ScrapeLog, get_engine, get_session
+from db.models import Article, Analysis, ScrapeLog, get_engine, get_session, seed_keywords
 from scraper.scraper import run_scraper
 from analyzer.classifier import classify
 from analyzer.ai_analyzer import run_analysis_batch
@@ -16,14 +16,17 @@ def scrape_job():
     logger.info("=== SCRAPE JOB START ===")
     session = get_session(engine)
     try:
-        articles = run_scraper(SOURCES, CONFIG)
+        seed_keywords(session)
+        articles = run_scraper(SOURCES, CONFIG, session)
         new_count = 0
         for art in articles:
             if session.query(Article).filter_by(url_hash=art["url_hash"]).first(): continue
             art = classify(art)
-            session.add(Article(url_hash=art["url_hash"],title=art["title"],url=art["url"],
-                source=art["source"],published_at=art["published_at"],location=art["location"],
-                category=art["category"],excerpt=art["excerpt"],is_new=True))
+            session.add(Article(
+                url_hash=art["url_hash"], title=art["title"], url=art["url"],
+                source=art["source"], published_at=art["published_at"],
+                location=art["location"], category=art["category"],
+                excerpt=art["excerpt"], is_new=True))
             new_count += 1
         session.commit()
         session.add(ScrapeLog(new_articles=new_count))
@@ -50,7 +53,8 @@ def cleanup_job():
     session = get_session(engine)
     try:
         cutoff = datetime.utcnow() - timedelta(days=30)
-        old = session.query(Article).filter(Article.scraped_at < cutoff, Article.is_new == True).all()
+        old = session.query(Article).filter(
+            Article.scraped_at < cutoff, Article.is_new == True).all()
         for a in old: a.is_new = False
         session.commit()
     finally:

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Namma BLR — Keywords</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-light:#E1F5EE;--green-mid:#5DCAA5;--green-dark:#085041;
+  --blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --amber-light:#FAEEDA;--amber:#854F0B;
+  --pink-light:#FBEAF0;--pink:#993556;
+  --purple-light:#EEEDFE;--purple:#534AB7;
+  --red:#E24B4A;--red-light:#FCEBEB;
+  --bg:#F7F6F2;--bg2:#FFFFFF;--bg3:#EFEDE8;
+  --text:#1a1a18;--text2:#5a5a56;--text3:#9a9a94;
+  --border:#e8e6e0;--border2:#d4d2cc;
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.topnav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:16px;height:52px}
+.logo{font-family:var(--serif);font-size:17px}
+.logo span{font-style:italic;color:var(--green)}
+.nav-links{display:flex;gap:4px;margin-left:auto}
+.nav-link{padding:6px 12px;border-radius:var(--radius-sm);font-size:12.5px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .12s}
+.nav-link:hover{background:var(--bg3);color:var(--text)}
+.nav-link.active{background:var(--green-light);color:var(--green-dark);font-weight:500}
+.container{max-width:860px;margin:0 auto;padding:28px 20px}
+.page-title{font-family:var(--serif);font-size:22px;color:var(--text);margin-bottom:4px}
+.page-sub{font-size:12.5px;color:var(--text3);margin-bottom:24px;line-height:1.6}
+.add-row{display:flex;gap:8px;margin-bottom:24px;background:var(--bg2);padding:14px;border-radius:var(--radius);border:1px solid var(--border)}
+.add-row input{flex:1;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--sans);outline:none}
+.add-row input:focus{border-color:var(--green)}
+.add-row select{padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg);color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer}
+.add-btn{padding:8px 16px;border-radius:var(--radius-sm);background:var(--green);border:none;color:#fff;font-size:13px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.add-btn:hover{opacity:.88}
+.add-btn:disabled{opacity:.5;cursor:default}
+.stats-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:11px;color:var(--text3)}
+.stat-card strong{display:block;font-size:18px;font-weight:500;color:var(--text);margin-bottom:2px}
+.section-title{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;margin-top:20px}
+.kw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.kw-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:8px;transition:border-color .12s}
+.kw-card:hover{border-color:var(--border2)}
+.kw-card.disabled{opacity:.45}
+.kw-word{flex:1;font-size:12.5px;font-weight:500;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kw-badge{font-size:9px;font-weight:500;padding:2px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0}
+.badge-env{background:var(--green-light);color:var(--green-dark)}
+.badge-legal{background:var(--blue-light);color:var(--blue-dark)}
+.badge-govt{background:var(--amber-light);color:var(--amber)}
+.badge-infra{background:var(--pink-light);color:var(--pink)}
+.badge-civic{background:var(--purple-light);color:var(--purple)}
+.badge-all{background:var(--bg3);color:var(--text2)}
+.kw-hits{font-size:10px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+.kw-toggle{width:28px;height:16px;border-radius:8px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.kw-toggle.on{background:var(--green)}
+.kw-toggle.off{background:var(--border2)}
+.kw-toggle::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s}
+.kw-toggle.on::after{transform:translateX(12px)}
+.kw-del{width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0}
+.kw-del:hover{background:var(--red-light);color:var(--red)}
+.search-row{display:flex;gap:8px;margin-bottom:16px;align-items:center}
+.search-row input{flex:1;padding:7px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:12px;font-family:var(--sans);outline:none}
+.search-row input:focus{border-color:var(--green)}
+.filter-btns{display:flex;gap:4px}
+.filter-btn{padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .12s}
+.filter-btn.on{background:var(--green-light);border-color:var(--green-mid);color:var(--green-dark)}
+.empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+.trending-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:24px}
+.trending-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.trending-chips{display:flex;flex-wrap:wrap;gap:6px}
+.trending-chip{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:4px}
+.trending-chip:hover{border-color:var(--green);color:var(--green-dark);background:var(--green-light)}
+.trend-count{font-size:9px;background:var(--border);padding:1px 5px;border-radius:8px;color:var(--text3)}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="logo">Namma <span>BLR</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">News Feed</a>
+    <a class="nav-link active" href="keywords.html">Keywords</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">Keyword Manager</div>
+  <div class="page-sub">Keywords control what articles get scraped. Add trending topics, locality names, or agency names to expand coverage. The scraper runs every 2 hours and picks up any changes automatically.</div>
+
+  <div class="add-row">
+    <input type="text" id="new-keyword" placeholder="Add keyword or phrase — e.g. 'Sarjapur Road' or 'tree felling'" onkeydown="if(event.key==='Enter')addKeyword()">
+    <select id="new-category">
+      <option value="">All categories</option>
+      <option value="env">Environment</option>
+      <option value="legal">Legal</option>
+      <option value="govt">Govt</option>
+      <option value="infra">Infrastructure</option>
+      <option value="civic">Civic</option>
+    </select>
+    <button class="add-btn" id="add-btn" onclick="addKeyword()">+ Add keyword</button>
+  </div>
+
+  <div class="stats-row" id="stats-row"></div>
+
+  <div class="trending-section" id="trending-section" style="display:none">
+    <div class="trending-title">🔥 Top performing keywords (by article matches)</div>
+    <div class="trending-chips" id="trending-chips"></div>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="kw-search" placeholder="Filter keywords…" oninput="renderKeywords()">
+    <div class="filter-btns">
+      <button class="filter-btn on" data-f="all" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" data-f="env" onclick="setFilter('env',this)">Env</button>
+      <button class="filter-btn" data-f="legal" onclick="setFilter('legal',this)">Legal</button>
+      <button class="filter-btn" data-f="govt" onclick="setFilter('govt',this)">Govt</button>
+      <button class="filter-btn" data-f="infra" onclick="setFilter('infra',this)">Infra</button>
+      <button class="filter-btn" data-f="civic" onclick="setFilter('civic',this)">Civic</button>
+      <button class="filter-btn" data-f="custom" onclick="setFilter('custom',this)">Custom</button>
+    </div>
+  </div>
+
+  <div class="section-title" id="kw-section-title">All keywords</div>
+  <div class="kw-grid" id="kw-grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "https://web-production-343bf.up.railway.app";
+const CAT_LABEL = {env:"Environment",legal:"Legal",govt:"Govt",infra:"Infrastructure",civic:"Civic","":"All"};
+const CAT_CLASS = {env:"badge-env",legal:"badge-legal",govt:"badge-govt",infra:"badge-infra",civic:"badge-civic","":"badge-all"};
+
+let keywords = [];
+let activeFilter = "all";
+
+async function loadKeywords() {
+  try {
+    const res  = await fetch(`${API}/api/keywords`);
+    const data = await res.json();
+    keywords   = data.keywords || [];
+    renderStats();
+    renderTrending();
+    renderKeywords();
+  } catch(e) {
+    document.getElementById("kw-grid").innerHTML = `<div class="empty">Could not load keywords: ${e.message}</div>`;
+  }
+}
+
+function renderStats() {
+  const total   = keywords.length;
+  const enabled = keywords.filter(k=>k.enabled).length;
+  const custom  = keywords.filter(k=>!k.is_default).length;
+  const topHits = keywords.reduce((a,b)=>a+(b.hit_count||0),0);
+  document.getElementById("stats-row").innerHTML = `
+    <div class="stat-card"><strong>${total}</strong>Total keywords</div>
+    <div class="stat-card"><strong>${enabled}</strong>Active</div>
+    <div class="stat-card"><strong>${custom}</strong>Custom added</div>
+    <div class="stat-card"><strong>${topHits}</strong>Total article matches</div>`;
+}
+
+function renderTrending() {
+  const top = [...keywords].filter(k=>k.hit_count>0).sort((a,b)=>b.hit_count-a.hit_count).slice(0,12);
+  if (!top.length) return;
+  const ts = document.getElementById("trending-section");
+  ts.style.display = "block";
+  document.getElementById("trending-chips").innerHTML = top.map(k=>`
+    <div class="trending-chip" onclick="filterToKeyword('${k.word}')">
+      ${sanitize(k.word)} <span class="trend-count">${k.hit_count}</span>
+    </div>`).join("");
+}
+
+function renderKeywords() {
+  const q = document.getElementById("kw-search").value.toLowerCase();
+  let filtered = keywords.filter(k => {
+    if (q && !k.word.includes(q)) return false;
+    if (activeFilter === "all") return true;
+    if (activeFilter === "custom") return !k.is_default;
+    return k.category === activeFilter;
+  });
+  document.getElementById("kw-section-title").textContent =
+    `${filtered.length} keyword${filtered.length!==1?"s":""}`;
+  if (!filtered.length) {
+    document.getElementById("kw-grid").innerHTML = `<div class="empty">No keywords match your filter</div>`;
+    return;
+  }
+  document.getElementById("kw-grid").innerHTML = filtered.map(k=>`
+    <div class="kw-card${k.enabled?"":" disabled"}" id="kw-${k.id}">
+      <div>
+        <div class="kw-word" title="${sanitize(k.word)}">${sanitize(k.word)}</div>
+        <div style="display:flex;gap:4px;margin-top:3px">
+          <span class="kw-badge ${CAT_CLASS[k.category]||'badge-all'}">${CAT_LABEL[k.category]||"All"}</span>
+          ${k.hit_count>0?`<span class="kw-hits">${k.hit_count} matches</span>`:""}
+        </div>
+      </div>
+      <button class="kw-toggle ${k.enabled?"on":"off"}" title="${k.enabled?"Disable":"Enable"}"
+        onclick="toggleKeyword(${k.id},${!k.enabled})"></button>
+      <button class="kw-del" title="Delete" onclick="deleteKeyword(${k.id})">×</button>
+    </div>`).join("");
+}
+
+async function addKeyword() {
+  const input = document.getElementById("new-keyword");
+  const word  = input.value.trim().toLowerCase();
+  if (!word) return;
+  const btn = document.getElementById("add-btn");
+  btn.disabled = true; btn.textContent = "Adding…";
+  try {
+    const res  = await fetch(`${API}/api/keywords`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({word, category: document.getElementById("new-category").value})
+    });
+    const data = await res.json();
+    input.value = "";
+    showToast(`"${word}" added`);
+    await loadKeywords();
+  } catch(e) {
+    showToast("Failed: " + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "+ Add keyword";
+  }
+}
+
+async function toggleKeyword(id, enabled) {
+  try {
+    await fetch(`${API}/api/keywords/${id}`, {
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({enabled})
+    });
+    const kw = keywords.find(k=>k.id===id);
+    if (kw) { kw.enabled = enabled; renderStats(); renderKeywords(); }
+    showToast(enabled ? "Keyword enabled" : "Keyword disabled");
+  } catch(e) {
+    showToast("Failed: " + e.message);
+  }
+}
+
+async function deleteKeyword(id) {
+  const kw = keywords.find(k=>k.id===id);
+  if (!kw) return;
+  if (!confirm(`Remove "${kw.word}"?`)) return;
+  try {
+    await fetch(`${API}/api/keywords/${id}`, {method:"DELETE"});
+    keywords = keywords.filter(k=>k.id!==id);
+    renderStats(); renderTrending(); renderKeywords();
+    showToast(`"${kw.word}" removed`);
+  } catch(e) {
+    showToast("Failed: " + e.message);
+  }
+}
+
+function filterToKeyword(word) {
+  document.getElementById("kw-search").value = word;
+  renderKeywords();
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("on", b===btn));
+  renderKeywords();
+}
+
+function sanitize(str) {
+  return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+loadKeywords();
+</script>
+</body>
+</html>

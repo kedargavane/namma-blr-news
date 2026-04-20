@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Namma BLR — Civic Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-light:#E1F5EE;--green-mid:#5DCAA5;--green-dark:#085041;
+  --blue-light:#E6F1FB;--blue:#185FA5;--blue-dark:#0C447C;
+  --amber-light:#FAEEDA;--amber:#854F0B;
+  --pink-light:#FBEAF0;--pink:#993556;
+  --purple-light:#EEEDFE;--purple:#534AB7;
+  --red:#E24B4A;--red-light:#FCEBEB;
+  --bg:#F7F6F2;--bg2:#FFFFFF;--bg3:#EFEDE8;
+  --text:#1a1a18;--text2:#5a5a56;--text3:#9a9a94;
+  --border:#e8e6e0;--border2:#d4d2cc;
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --radius:10px;--radius-sm:6px;
+}
+html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--text);font-size:14px}
+.app{display:grid;grid-template-columns:200px 1fr 300px;grid-template-rows:auto 1fr;height:100vh;overflow:hidden}
+.topnav{grid-column:1/-1;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:16px;height:52px;flex-shrink:0}
+.logo{font-family:var(--serif);font-size:17px;color:var(--text);white-space:nowrap}
+.logo span{font-style:italic;color:var(--green)}
+.nav-search{flex:1;max-width:400px;position:relative}
+.nav-search input{width:100%;padding:7px 12px 7px 32px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;transition:border .15s}
+.nav-search input:focus{border-color:var(--green)}
+.nav-search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.stat-pill{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.stat-pill strong{color:var(--text);font-weight:500}
+.sync-indicator{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:14px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sidebar-label{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:10px 10px 4px;margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:12.5px;color:var(--text2);transition:all .12s;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--green-light);color:var(--green-dark);font-weight:500}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-count{font-size:10px;margin-left:auto;background:var(--bg3);color:var(--text3);padding:1px 7px;border-radius:10px}
+.nav-item.active .nav-count{background:rgba(255,255,255,.6);color:var(--green-dark)}
+.sidebar-footer{margin-top:auto;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);padding-left:10px}
+.feed-col{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.feed-toolbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.view-toggle{display:flex;border:1px solid var(--border2);border-radius:var(--radius-sm);overflow:hidden}
+.vtb{padding:5px 10px;background:transparent;border:none;cursor:pointer;font-size:11px;color:var(--text3);font-family:var(--sans);transition:all .12s}
+.vtb.on{background:var(--bg3);color:var(--text)}
+.sort-sel{font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-family:var(--sans);cursor:pointer}
+.feed-count{font-size:11px;color:var(--text3);margin-left:auto}
+.feed-list{flex:1;overflow-y:auto}
+.art-row{display:flex;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;background:var(--bg2)}
+.art-row:hover{background:#fafaf8}
+.art-row.sel{background:var(--green-light)}
+.cat-bar{width:3px;flex-shrink:0}
+.art-inner{padding:11px 13px;flex:1;min-width:0}
+.art-top{display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap}
+.badge{font-size:9px;font-weight:500;padding:2px 6px;border-radius:3px;letter-spacing:.02em;white-space:nowrap}
+.badge-env{background:var(--green-light);color:var(--green-dark)}
+.badge-legal{background:var(--blue-light);color:var(--blue-dark)}
+.badge-govt{background:var(--amber-light);color:var(--amber)}
+.badge-infra{background:var(--pink-light);color:var(--pink)}
+.badge-civic{background:var(--purple-light);color:var(--purple)}
+.art-source{font-size:10px;color:var(--text3)}
+.art-time{font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap}
+.new-pip{width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0}
+.art-title{font-size:12.5px;font-weight:500;color:var(--text);line-height:1.45;margin-bottom:3px}
+.art-excerpt{font-size:11.5px;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.art-loc{font-size:10px;color:var(--text3);margin-top:4px}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+.card-tile{border:1px solid var(--border);border-radius:var(--radius);padding:11px;cursor:pointer;transition:all .12s;background:var(--bg2)}
+.card-tile:hover{border-color:var(--border2);background:#fafaf8}
+.card-tile.sel{border-color:var(--green);background:var(--green-light)}
+.tile-bar{height:3px;border-radius:2px;margin-bottom:8px}
+.tile-title{font-size:12px;font-weight:500;color:var(--text);line-height:1.4;margin:5px 0}
+.tile-meta{font-size:10px;color:var(--text3)}
+.pag-bar{padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0}
+.pag-info{font-size:10px;color:var(--text3)}
+.pag-btns{display:flex;gap:3px}
+.pag-btn{font-size:11px;padding:4px 9px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);transition:all .12s}
+.pag-btn:hover:not(:disabled){background:var(--bg3)}
+.pag-btn:disabled{opacity:.3;cursor:default}
+.pag-btn.on{background:var(--bg3);font-weight:500;color:var(--text);border-color:var(--border2)}
+.skeleton-row{padding:12px 14px;border-bottom:1px solid var(--border)}
+.skel{height:10px;border-radius:4px;background:linear-gradient(90deg,var(--bg3) 25%,var(--border) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel.short{width:40%}.skel.med{width:65%}.skel.long{width:90%}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text3);font-size:13px}
+.empty-glyph{font-family:var(--serif);font-size:40px;font-style:italic;color:var(--border2)}
+.reader{border-left:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;overflow:hidden}
+.reader-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text3);text-align:center;padding:24px}
+.reader-empty-glyph{font-family:var(--serif);font-size:42px;font-style:italic;color:var(--border2)}
+.reader-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.reader-badge{font-size:9px;font-weight:500;padding:2px 7px;border-radius:3px;display:inline-block;margin-bottom:8px;letter-spacing:.02em}
+.reader-title{font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--text);margin-bottom:8px}
+.reader-meta{font-size:10px;color:var(--text3);display:flex;gap:10px;flex-wrap:wrap}
+.reader-body{flex:1;overflow-y:auto;padding:14px 16px}
+.spinner{width:18px;height:18px;border:2px solid var(--green-light);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.analysis-pending{text-align:center;padding:20px;color:var(--text3);font-size:12px}
+.analysis-section{background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid var(--border);margin-bottom:10px}
+.analysis-label{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:7px}
+.sev-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sev-tag{font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px}
+.sev-high{background:var(--red-light);color:var(--red)}
+.sev-medium{background:var(--amber-light);color:var(--amber)}
+.sev-low{background:var(--green-light);color:var(--green-dark)}
+.sev-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.sev-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.sev-note{font-size:11.5px;color:var(--text2);line-height:1.6}
+.law-chip{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;background:var(--blue-light);color:var(--blue-dark);border:1px solid #B5D4F4;margin:2px}
+.impl-item{display:flex;gap:7px;align-items:flex-start;margin-bottom:6px}
+.impl-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.impl-text{font-size:11.5px;color:var(--text2);line-height:1.6}
+.watch-item{font-size:11.5px;color:var(--text2);line-height:1.6;padding:5px 0;border-bottom:1px solid var(--border)}
+.watch-item:last-child{border-bottom:none}
+.entity-wrap{display:flex;flex-wrap:wrap;gap:4px}
+.entity-chip{font-size:10px;padding:2px 7px;border-radius:3px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2)}
+.no-analysis{font-size:12px;color:var(--text3);text-align:center;padding:20px;line-height:1.7}
+.reader-actions{padding:10px 16px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.r-btn{padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11.5px;font-family:var(--sans);cursor:pointer;text-align:left;transition:all .12s;width:100%}
+.r-btn:hover{background:var(--bg3);color:var(--text)}
+.r-btn:disabled{opacity:.5;cursor:default}
+.r-btn-primary{background:var(--green-light);border-color:var(--green-mid);color:var(--green-dark)}
+.r-btn-primary:hover{background:#9FE1CB}
+.r-btn-save.saved{background:var(--amber-light);border-color:#FAC775;color:var(--amber)}
+.error-banner{background:var(--red-light);border:1px solid #F7C1C1;color:#791F1F;padding:8px 14px;font-size:12px;text-align:center}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="topnav">
+    <div class="logo">Namma <span>BLR</span></div>
+    <div class="nav-search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search-input" placeholder="Search articles, locations, agencies…" oninput="onSearch()">
+    </div>
+    <div class="nav-right">
+      <div class="stat-pill">Total: <strong id="stat-total">—</strong></div>
+      <div class="stat-pill">Analysed: <strong id="stat-analysed">—</strong></div>
+      <div class="sync-indicator"><span class="sync-dot"></span><span id="sync-label">Live</span></div>
+    </div>
+  </nav>
+  <aside class="sidebar">
+    <div class="nav-item active" onclick="setFilter('all',this)"><span class="nav-dot" style="background:var(--text3)"></span>All news<span class="nav-count" id="cnt-all">—</span></div>
+    <div class="sidebar-label">Categories</div>
+    <div class="nav-item" onclick="setFilter('env',this)"><span class="nav-dot" style="background:var(--green)"></span>Environment<span class="nav-count" id="cnt-env">—</span></div>
+    <div class="nav-item" onclick="setFilter('legal',this)"><span class="nav-dot" style="background:#378ADD"></span>Legal<span class="nav-count" id="cnt-legal">—</span></div>
+    <div class="nav-item" onclick="setFilter('govt',this)"><span class="nav-dot" style="background:#BA7517"></span>Govt directives<span class="nav-count" id="cnt-govt">—</span></div>
+    <div class="nav-item" onclick="setFilter('infra',this)"><span class="nav-dot" style="background:#D4537E"></span>Infrastructure<span class="nav-count" id="cnt-infra">—</span></div>
+    <div class="nav-item" onclick="setFilter('civic',this)"><span class="nav-dot" style="background:#7F77DD"></span>Civic issues<span class="nav-count" id="cnt-civic">—</span></div>
+    <div class="sidebar-label">Saved</div>
+    <div class="nav-item" onclick="setFilter('saved',this)"><span class="nav-dot" style="background:var(--text3)"></span>Bookmarks<span class="nav-count" id="cnt-saved">0</span></div>
+    <div class="sidebar-footer" id="sidebar-footer">Connecting…</div>
+  </aside>
+  <main class="feed-col">
+    <div id="error-banner" class="error-banner" style="display:none"></div>
+    <div class="feed-toolbar">
+      <div class="view-toggle">
+        <button class="vtb on" onclick="setView('list',this)">List</button>
+        <button class="vtb" onclick="setView('card',this)">Cards</button>
+      </div>
+      <select class="sort-sel" id="sort-sel" onchange="fetchArticles(1)">
+        <option value="date">Latest first</option>
+        <option value="category">By category</option>
+      </select>
+      <span class="feed-count" id="feed-count"></span>
+    </div>
+    <div class="feed-list" id="feed-list">
+      <div id="skeleton-area"></div>
+    </div>
+    <div class="pag-bar">
+      <span class="pag-info" id="pag-info"></span>
+      <div class="pag-btns" id="pag-btns"></div>
+    </div>
+  </main>
+  <aside class="reader" id="reader">
+    <div class="reader-empty">
+      <div class="reader-empty-glyph">§</div>
+      <span style="font-size:12px;line-height:1.7">Select an article<br>to read its AI analysis</span>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "https://web-production-343bf.up.railway.app";
+const PER_PAGE = 12;
+
+let activeFilter = "all";
+let activeView   = "list";
+let currentPage  = 1;
+let selectedId   = null;
+let searchTimer  = null;
+let savedIds     = new Set(JSON.parse(localStorage.getItem("saved_ids") || "[]"));
+
+const CAT = {
+  env:   {label:"Environment",    stripe:"#1D9E75", badge:"badge-env"},
+  legal: {label:"Legal / Courts", stripe:"#378ADD", badge:"badge-legal"},
+  govt:  {label:"Govt directive",  stripe:"#BA7517", badge:"badge-govt"},
+  infra: {label:"Infrastructure", stripe:"#D4537E", badge:"badge-infra"},
+  civic: {label:"Civic issue",    stripe:"#7F77DD", badge:"badge-civic"},
+};
+function catOf(a){ return CAT[a.category] || CAT.civic; }
+
+async function fetchArticles(page=1) {
+  currentPage = page;
+  showSkeletons();
+  const q = document.getElementById("search-input").value.trim();
+  const params = new URLSearchParams({page, per_page:PER_PAGE});
+  if (activeFilter !== "all" && activeFilter !== "saved") params.set("category", activeFilter);
+  if (q) params.set("q", q);
+  try {
+    const res  = await fetch(`${API}/api/articles?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    let articles = data.articles || [];
+    if (activeFilter === "saved") articles = articles.filter(a => savedIds.has(a.id));
+    renderFeed(articles);
+    renderPagination(data.total, page, data.pages);
+    document.getElementById("feed-count").textContent = `${data.total} articles`;
+    document.getElementById("error-banner").style.display = "none";
+    updateSyncLabel();
+  } catch(e) {
+    showError(`Could not reach API: ${e.message}`);
+  }
+}
+
+async function fetchStats() {
+  try {
+    const res  = await fetch(`${API}/api/stats`);
+    const data = await res.json();
+    document.getElementById("stat-total").textContent    = data.total_articles || 0;
+    document.getElementById("stat-analysed").textContent = data.analysed || 0;
+    const bc = data.by_category || {};
+    ["env","legal","govt","infra","civic"].forEach(c => {
+      const el = document.getElementById("cnt-"+c);
+      if (el) el.textContent = bc[c] || 0;
+    });
+    document.getElementById("cnt-all").textContent = data.total_articles || 0;
+    document.getElementById("sidebar-footer").textContent = "Synced just now";
+  } catch(e) { console.warn("Stats fetch failed:", e); }
+}
+
+function renderFeed(articles) {
+  const fl = document.getElementById("feed-list");
+  if (!articles.length) {
+    fl.innerHTML = `<div class="empty-state"><div class="empty-glyph">∅</div><span>No articles found</span></div>`;
+    return;
+  }
+  if (activeView === "list") {
+    fl.innerHTML = articles.map(a => {
+      const c   = catOf(a);
+      const pub = a.published_at ? new Date(a.published_at).toLocaleDateString("en-IN",{day:"numeric",month:"short"}) : "";
+      const hasAnalysis = a.analysis && a.analysis.status === "done" && a.analysis.severity;
+      return `<div class="art-row${selectedId===a.id?" sel":""}" onclick="selectArticle(${a.id})" data-id="${a.id}">
+        <div class="cat-bar" style="background:${c.stripe}"></div>
+        <div class="art-inner">
+          <div class="art-top">
+            <span class="badge ${c.badge}">${c.label}</span>
+            <span class="art-source">${sanitize(a.source||"")}</span>
+            ${a.is_new ? '<span class="new-pip" title="New"></span>' : ""}
+            ${hasAnalysis ? `<span class="badge" style="background:var(--bg3);color:var(--text2)">✓ Analysed</span>` : ""}
+            <span class="art-time">${pub}</span>
+          </div>
+          <div class="art-title">${sanitize(a.title)}</div>
+          ${a.excerpt ? `<div class="art-excerpt">${sanitize(a.excerpt)}</div>` : ""}
+          ${a.location ? `<div class="art-loc">📍 ${sanitize(a.location)}</div>` : ""}
+        </div>
+      </div>`;
+    }).join("");
+  } else {
+    fl.innerHTML = `<div class="card-grid">${articles.map(a => {
+      const c   = catOf(a);
+      const pub = a.published_at ? new Date(a.published_at).toLocaleDateString("en-IN",{day:"numeric",month:"short"}) : "";
+      return `<div class="card-tile${selectedId===a.id?" sel":""}" onclick="selectArticle(${a.id})" data-id="${a.id}">
+        <div class="tile-bar" style="background:${c.stripe}"></div>
+        <span class="badge ${c.badge}">${c.label}</span>
+        <div class="tile-title">${sanitize(a.title)}</div>
+        <div class="tile-meta">${sanitize(a.source||"")} · ${pub} · ${sanitize(a.location||"")}</div>
+      </div>`;
+    }).join("")}</div>`;
+  }
+}
+
+function renderPagination(total, page, pages) {
+  document.getElementById("pag-info").textContent = `${total} articles · page ${page} of ${pages}`;
+  const pb  = document.getElementById("pag-btns");
+  const max = 5;
+  let start = Math.max(1, page-2);
+  let end   = Math.min(pages, start+max-1);
+  if (end-start < max-1) start = Math.max(1, end-max+1);
+  let html  = `<button class="pag-btn" onclick="fetchArticles(${page-1})" ${page<=1?"disabled":""}>←</button>`;
+  for (let i=start; i<=end; i++) html += `<button class="pag-btn${i===page?" on":""}" onclick="fetchArticles(${i})">${i}</button>`;
+  html += `<button class="pag-btn" onclick="fetchArticles(${page+1})" ${page>=pages?"disabled":""}>→</button>`;
+  pb.innerHTML = html;
+}
+
+async function selectArticle(id) {
+  selectedId = id;
+  document.querySelectorAll(".art-row,.card-tile").forEach(el =>
+    el.classList.toggle("sel", parseInt(el.dataset.id) === id));
+  const r = document.getElementById("reader");
+  r.innerHTML = `<div class="reader-empty"><div class="analysis-pending"><div class="spinner"></div>Loading…</div></div>`;
+  try {
+    const res  = await fetch(`${API}/api/articles/${id}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderReader(data);
+  } catch(e) {
+    r.innerHTML = `<div class="reader-empty"><span style="font-size:12px">Could not load article: ${e.message}</span></div>`;
+  }
+}
+
+function renderAnalysis(a, an) {
+  if (!an) {
+    return `<div class="no-analysis">
+      No AI analysis yet.<br><br>
+      <button class="r-btn r-btn-primary" id="analyze-btn-${a.id}" onclick="triggerAnalysis(${a.id})">Run AI analysis</button>
+    </div>`;
+  }
+  if (an.status === "pending") {
+    return `<div class="analysis-pending"><div class="spinner"></div>Analysis in progress…<br>
+      <small style="margin-top:6px;display:block">Refresh in a few minutes</small></div>`;
+  }
+  if (an.status === "failed" || !an.severity) {
+    return `<div class="no-analysis">
+      Analysis failed or returned no data.<br><br>
+      <button class="r-btn r-btn-primary" id="analyze-btn-${a.id}" onclick="triggerAnalysis(${a.id})">Retry analysis</button>
+    </div>`;
+  }
+  const sevClass = {High:"sev-high",Medium:"sev-medium",Low:"sev-low"}[an.severity]||"sev-medium";
+  const sevWidth = {High:"85%",Medium:"55%",Low:"28%"}[an.severity]||"55%";
+  const sevColor = {High:"#E24B4A",Medium:"#BA7517",Low:"#1D9E75"}[an.severity]||"#BA7517";
+  return `
+    <div class="analysis-section">
+      <div class="analysis-label">Severity</div>
+      <div class="sev-row">
+        <span class="sev-tag ${sevClass}">${an.severity}</span>
+        <div class="sev-track"><div class="sev-fill" style="width:${sevWidth};background:${sevColor}"></div></div>
+      </div>
+      <div class="sev-note">${sanitize(an.severity_note||"")}</div>
+    </div>
+    ${(an.laws||[]).length?`<div class="analysis-section">
+      <div class="analysis-label">Laws & statutes triggered</div>
+      <div>${an.laws.map(l=>`<span class="law-chip">${sanitize(l)}</span>`).join("")}</div>
+    </div>`:""}
+    ${(an.legal_points||[]).length?`<div class="analysis-section">
+      <div class="analysis-label">Legal implications</div>
+      ${an.legal_points.map(p=>`<div class="impl-item"><div class="impl-dot" style="background:#378ADD"></div><div class="impl-text">${sanitize(p)}</div></div>`).join("")}
+    </div>`:""}
+    ${(an.civic_points||[]).length?`<div class="analysis-section">
+      <div class="analysis-label">Civic implications</div>
+      ${an.civic_points.map(p=>`<div class="impl-item"><div class="impl-dot" style="background:var(--green)"></div><div class="impl-text">${sanitize(p)}</div></div>`).join("")}
+    </div>`:""}
+    ${(an.watch_points||[]).length?`<div class="analysis-section">
+      <div class="analysis-label">What to watch next</div>
+      ${an.watch_points.map(w=>`<div class="watch-item">${sanitize(w)}</div>`).join("")}
+    </div>`:""}
+    ${(an.entities||[]).length?`<div class="analysis-section">
+      <div class="analysis-label">Key entities</div>
+      <div class="entity-wrap">${an.entities.map(e=>`<span class="entity-chip">${sanitize(e)}</span>`).join("")}</div>
+    </div>`:""}`;
+}
+
+function renderReader(a) {
+  const c    = catOf(a);
+  const pub  = a.published_at ? new Date(a.published_at).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "";
+  const isSaved = savedIds.has(a.id);
+  document.getElementById("reader").innerHTML = `
+    <div class="reader-head">
+      <span class="reader-badge ${c.badge}">${c.label}</span>
+      <div class="reader-title">${sanitize(a.title)}</div>
+      <div class="reader-meta">
+        <span>${sanitize(a.source||"")}</span>
+        <span>📍 ${sanitize(a.location||"Bengaluru")}</span>
+        <span>${pub}</span>
+      </div>
+    </div>
+    <div class="reader-body" id="reader-body-${a.id}">${renderAnalysis(a, a.analysis)}</div>
+    <div class="reader-actions">
+      <button class="r-btn r-btn-primary" onclick="window.open('${a.url}','_blank')">Read full article →</button>
+      <button class="r-btn r-btn-save${isSaved?" saved":""}" id="save-btn-${a.id}" onclick="toggleSave(${a.id},this)">${isSaved?"★ Bookmarked":"☆ Bookmark"}</button>
+    </div>`;
+}
+
+async function triggerAnalysis(articleId) {
+  const btn = document.getElementById(`analyze-btn-${articleId}`);
+  if (btn) { btn.disabled = true; btn.textContent = "Analysing…"; }
+  const body = document.getElementById(`reader-body-${articleId}`);
+  if (body) body.innerHTML = `<div class="analysis-pending"><div class="spinner"></div>Claude is analysing this article…<br><small style="margin-top:6px;display:block">This takes about 10 seconds</small></div>`;
+  try {
+    const res = await fetch(`${API}/api/articles/${articleId}/analyze`, {method:"POST"});
+    console.log("Analyze status:", res.status);
+    const text = await res.text();
+    console.log("Analyze response:", text);
+    if (!res.ok) throw new Error(`Server error ${res.status}: ${text}`);
+    const data = JSON.parse(text);
+    if (!data || !data.id) throw new Error("Invalid response: " + text);
+    renderReader(data);
+    showToast("Analysis complete");
+    fetchStats();
+  } catch(e) {
+    console.error("triggerAnalysis error:", e);
+    if (body) body.innerHTML = `<div class="no-analysis">
+      Analysis failed: ${sanitize(e.message)}<br><br>
+      <button class="r-btn r-btn-primary" id="analyze-btn-${articleId}" onclick="triggerAnalysis(${articleId})">Retry</button>
+    </div>`;
+    showToast("Failed: " + e.message);
+  }
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  el.classList.add("active");
+  selectedId = null;
+  document.getElementById("reader").innerHTML = `<div class="reader-empty"><div class="reader-empty-glyph">§</div><span style="font-size:12px;line-height:1.7">Select an article<br>to read its AI analysis</span></div>`;
+  fetchArticles(1);
+}
+
+function setView(v, btn) {
+  activeView = v;
+  document.querySelectorAll(".vtb").forEach(b => b.classList.toggle("on", b===btn));
+  fetchArticles(currentPage);
+}
+
+function onSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => fetchArticles(1), 400);
+}
+
+function toggleSave(id, btn) {
+  if (savedIds.has(id)) {
+    savedIds.delete(id);
+    btn.textContent = "☆ Bookmark";
+    btn.classList.remove("saved");
+    showToast("Removed from bookmarks");
+  } else {
+    savedIds.add(id);
+    btn.textContent = "★ Bookmarked";
+    btn.classList.add("saved");
+    showToast("Bookmarked");
+  }
+  localStorage.setItem("saved_ids", JSON.stringify([...savedIds]));
+  document.getElementById("cnt-saved").textContent = savedIds.size;
+  fetch(`${API}/api/articles/${id}/save`, {method:"POST"}).catch(()=>{});
+}
+
+function sanitize(str) {
+  return String(str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function showSkeletons() {
+  document.getElementById("feed-list").innerHTML = [...Array(8)].map(()=>`
+    <div class="skeleton-row">
+      <div class="skel short" style="margin-bottom:8px"></div>
+      <div class="skel long" style="margin-bottom:6px"></div>
+      <div class="skel med"></div>
+    </div>`).join("");
+}
+
+function showError(msg) {
+  const b = document.getElementById("error-banner");
+  b.textContent = msg; b.style.display = "block";
+  document.getElementById("feed-list").innerHTML = `<div class="empty-state"><div class="empty-glyph">!</div><span>${msg}</span></div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+function updateSyncLabel() {
+  const now = new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+  document.getElementById("sync-label").textContent = `Synced ${now}`;
+}
+
+fetchArticles(1);
+fetchStats();
+setInterval(fetchStats, 5*60*1000);
+</script>
+</body>
+</html>
