@@ -250,8 +250,16 @@ def delete_keyword(keyword_id: int):
 
 
 
-from fastapi.staticfiles import StaticFiles
+# ── Serve frontend HTML directly ──────────────────────────────────────────────
+from fastapi.responses import FileResponse
 import os as _os
+
 _frontend = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "frontend")
-if _os.path.exists(_frontend):
-    app.mount("/", StaticFiles(directory=_frontend, html=True), name="frontend")
+
+@app.get("/")
+def serve_index():
+    return FileResponse(_os.path.join(_frontend, "index.html"))
+
+@app.get("/keywords.html")
+def serve_keywords():
+    return FileResponse(_os.path.join(_frontend, "keywords.html"))
