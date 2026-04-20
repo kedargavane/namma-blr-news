@@ -368,7 +368,7 @@ function renderAnalysis(a, an) {
     ${(an.entities||[]).length?`<div class="analysis-section">
       <div class="analysis-label">Key entities</div>
       <div class="entity-wrap">${an.entities.map(e=>`<span class="entity-chip">${sanitize(e)}</span>`).join("")}</div>
-    </div>`:""}
+    </div>`:""`}
     ${(an.timeline||[]).length?`<div class="analysis-section">
         <div class="analysis-label">Timeline</div>
         <div style="position:relative;padding-left:16px;border-left:2px solid var(--border2);margin-top:4px">
@@ -388,9 +388,9 @@ function renderAnalysis(a, an) {
             <div style="font-size:10px;font-weight:500;background:var(--blue-light);color:var(--blue-dark);padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0">${sanitize(ex.city||"")}</div>
             <div style="font-size:11.5px;color:var(--text2);line-height:1.5">${sanitize(ex.approach||"")}</div>
           </div>`).join("")}
-      </div>`:""}`;
-}
-}
+      </div>`:""}` ;
+
+
 
 function renderReader(a) {
   const c    = catOf(a);
