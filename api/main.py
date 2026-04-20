@@ -30,9 +30,17 @@ logger = logging.getLogger(__name__)
 engine = get_engine(CONFIG["db_path"])
 
 _railway_url = os.getenv("RAILWAY_STATIC_URL", "")
+cat > /tmp/fix_cors.py << 'EOF'
+content = open("api/main.py").read()
+old = '''_railway_url = os.getenv("RAILWAY_STATIC_URL", "")
 ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]
 if _railway_url:
-    ALLOWED_ORIGINS.extend([_railway_url, _railway_url.replace("https://", "http://")])
+    ALLOWED_ORIGINS.extend([_railway_url, _railway_url.replace("https://", "http://")])'''
+new = '''ALLOWED_ORIGINS = ["*"]'''
+open("api/main.py", "w").write(content.replace(old, new))
+print("done")
+EOF
+python3 /tmp/fix_cors.py
 
 
 @asynccontextmanager
@@ -175,3 +183,6 @@ def trigger_scrape():
 @app.post("/api/admin/analyze")
 def trigger_batch_analysis():
     analysis_job(); return {"status": "analysis batch submitted"}
+
+from fastapi.staticfiles import StaticFiles
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
