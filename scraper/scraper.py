@@ -13,6 +13,8 @@ def url_hash(url):
 
 def clean(text):
     if not text: return ""
+    text = text.encode("utf-8", "ignore").decode("utf-8")
+    text = text.replace("\u00e2\u0080\u0099", "'").replace("\u00e2\u0080\u009c", '"').replace("\u00e2\u0080\u009d", '"').replace("\u00e2\u0080\u0094", "—")
     return re.sub(r"\s+", " ", text).strip()
 
 def parse_date(entry):
@@ -79,8 +81,16 @@ KEYWORDS = ["bengaluru","bangalore","bbmp","bwssb","bda","bmrcl","lake","encroac
     "sewage","tree","ngt","high court","karnataka","environment","forest","waste",
     "flood","urban","civic","infrastructure","pollution","green belt","wetland"]
 
+BLOCKLIST = [
+    "cricket","ipl","bjp","congress","election","poll","minister resigns",
+    "actor","film","movie","court verdict unrelated","pm shri","school upgrade",
+    "crypto","money laundering","abortion","rajya sabha","lok sabha",
+    "flight diverted","turbulence","nanomaterial","research institute",
+]
+
 def is_relevant(article):
     text = (article["title"] + " " + article["excerpt"]).lower()
+    if any(bl in text for bl in BLOCKLIST): return False
     return any(kw in text for kw in KEYWORDS)
 
 def run_scraper(sources, config):
