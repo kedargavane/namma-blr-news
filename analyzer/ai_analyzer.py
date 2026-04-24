@@ -6,7 +6,7 @@ import anthropic
 logger = logging.getLogger(__name__)
 MODEL = "claude-sonnet-4-5"
 MAX_TOKENS = 1800
-DAILY_ANALYSIS_LIMIT = 20
+DAILY_ANALYSIS_LIMIT = 10
 
 SYSTEM_PROMPT = """You are a civic intelligence analyst specialising in Bengaluru, India.
 Analyse news headlines about urban governance, environment, and law.

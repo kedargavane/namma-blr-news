@@ -179,6 +179,31 @@ def trigger_batch_analysis():
     analysis_job(); return {"status": "analysis batch submitted"}
 
 
+# ── Analysis quota ───────────────────────────────────────────────────────────
+
+@app.get("/api/analysis-quota")
+def get_analysis_quota():
+    from db.models import Analysis
+    from datetime import date
+    session = get_session(engine)
+    try:
+        today_start = datetime.combine(date.today(), datetime.min.time())
+        done_today = session.query(Analysis).filter(
+            Analysis.status == "done",
+            Analysis.analysed_at >= today_start
+        ).count()
+        pending = session.query(Analysis).filter_by(status="pending").count()
+        limit = 10
+        return {
+            "limit":      limit,
+            "used_today": done_today,
+            "remaining":  max(0, limit - done_today),
+            "pending":    pending,
+        }
+    finally:
+        session.close()
+
+
 # ── Keywords API ──────────────────────────────────────────────────────────────
 
 @app.get("/api/keywords")

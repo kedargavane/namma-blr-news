@@ -145,6 +145,7 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
     <div class="nav-right">
       <div class="stat-pill">Total: <strong id="stat-total">—</strong></div>
       <div class="stat-pill">Analysed: <strong id="stat-analysed">—</strong></div>
+      <div class="stat-pill" id="quota-pill" title="AI analyses remaining today">⚡ <strong id="stat-remaining">—</strong>/10 today</div>
       <div class="sync-indicator"><span class="sync-dot"></span><span id="sync-label">Live</span></div>
       <a href="/keywords.html" style="padding:6px 12px;border-radius:6px;font-size:12.5px;color:#5a5a56;text-decoration:none;border:1px solid #d4d2cc;background:#EFEDE8">⚙ Keywords</a>
     </div>
@@ -442,7 +443,30 @@ function renderReader(a) {
     </div>`;
 }
 
+async function fetchQuota() {
+  try {
+    const res  = await fetch(`${API}/api/analysis-quota`);
+    const data = await res.json();
+    const el   = document.getElementById("stat-remaining");
+    if (el) el.textContent = data.remaining;
+    const pill = document.getElementById("quota-pill");
+    if (pill) {
+      pill.style.background = data.remaining === 0 ? "var(--red-light)" : "var(--bg3)";
+      pill.style.color      = data.remaining === 0 ? "var(--red)" : "var(--text2)";
+      pill.title = data.remaining === 0
+        ? "Daily limit reached — resets at midnight"
+        : `${data.remaining} AI analyses remaining today`;
+    }
+    return data;
+  } catch(e) { return null; }
+}
+
 async function triggerAnalysis(articleId) {
+  const quota = await fetchQuota();
+  if (quota && quota.remaining <= 0) {
+    showToast("Daily limit of 10 analyses reached — resets at midnight");
+    return;
+  }
   const btn = document.getElementById(`analyze-btn-${articleId}`);
   if (btn) { btn.disabled = true; btn.textContent = "Analysing…"; }
   const body = document.getElementById(`reader-body-${articleId}`);
@@ -458,6 +482,7 @@ async function triggerAnalysis(articleId) {
     renderReader(data);
     showToast("Analysis complete");
     fetchStats();
+    fetchQuota();
   } catch(e) {
     console.error("triggerAnalysis error:", e);
     if (body) body.innerHTML = `<div class="no-analysis">
@@ -537,7 +562,9 @@ function updateSyncLabel() {
 
 fetchArticles(1);
 fetchStats();
+fetchQuota();
 setInterval(fetchStats, 5*60*1000);
+setInterval(fetchQuota, 60*1000);
 </script>
 </body>
 </html>

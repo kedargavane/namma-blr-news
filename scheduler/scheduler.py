@@ -63,7 +63,8 @@ def cleanup_job():
 def start_scheduler():
     scheduler = BackgroundScheduler(timezone="Asia/Kolkata")
     scheduler.add_job(scrape_job, IntervalTrigger(hours=2), id="scrape", replace_existing=True)
-    scheduler.add_job(analysis_job, IntervalTrigger(hours=2, start_date="2024-01-01 00:30:00"), id="analysis", replace_existing=True)
+    # analysis_job disabled — triggered manually via API only
+    # scheduler.add_job(analysis_job, IntervalTrigger(hours=2, start_date="2024-01-01 00:30:00"), id="analysis", replace_existing=True)
     scheduler.add_job(cleanup_job, CronTrigger(hour=3, minute=0, timezone="Asia/Kolkata"), id="cleanup", replace_existing=True)
     scheduler.start()
     logger.info("Scheduler started.")
