@@ -132,6 +132,27 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
 .error-banner{background:var(--red-light);border:1px solid #F7C1C1;color:#791F1F;padding:8px 14px;font-size:12px;text-align:center}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:1000}
 .toast.show{opacity:1}
+
+/* ── Submit modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border-radius:var(--radius);padding:24px;width:480px;max-width:90vw;border:1px solid var(--border2);box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.modal-title{font-family:var(--serif);font-size:18px;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.6}
+.modal-input{width:100%;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;margin-bottom:10px}
+.modal-input:focus{border-color:var(--green)}
+.modal-preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;display:none}
+.modal-preview-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.4}
+.modal-preview-meta{font-size:11px;color:var(--text3);margin-bottom:6px}
+.modal-preview-excerpt{font-size:12px;color:var(--text2);line-height:1.5}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal-btn{padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .12s;border:1px solid var(--border2)}
+.modal-btn-primary{background:var(--green);border-color:var(--green);color:#fff;font-weight:500}
+.modal-btn-primary:hover{opacity:.88}
+.modal-btn-primary:disabled{opacity:.5;cursor:default}
+.modal-btn-cancel{background:transparent;color:var(--text2)}
+.modal-btn-cancel:hover{background:var(--bg3)}
+.badge-submitted{background:#FFF3CD;color:#856404}
 </style>
 </head>
 <body>
@@ -147,6 +168,8 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
       <div class="stat-pill">Analysed: <strong id="stat-analysed">—</strong></div>
       <div class="stat-pill" id="quota-pill" title="AI analyses remaining today">⚡ <strong id="stat-remaining">—</strong>/10 today</div>
       <div class="sync-indicator"><span class="sync-dot"></span><span id="sync-label">Live</span></div>
+      <button onclick="openSubmitModal()" style="padding:6px 12px;border-radius:6px;font-size:12.5px;color:var(--green-dark);text-decoration:none;border:1px solid var(--green-mid);background:var(--green-light);cursor:pointer;font-family:var(--sans);font-weight:500">+ Add article</button>
+      <a href="/keywords.html" style="padding:6px 12px;border-radius:6px;font-size:12.5px;color:var(--text2);text-decoration:none;border:1px solid var(--border2);background:var(--bg3)">⚙ Keywords</a>
       <a href="/keywords.html" style="padding:6px 12px;border-radius:6px;font-size:12.5px;color:#5a5a56;text-decoration:none;border:1px solid #d4d2cc;background:#EFEDE8">⚙ Keywords</a>
     </div>
   </nav>
@@ -191,6 +214,24 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
   </aside>
 </div>
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="submit-modal" onclick="closeSubmitModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add an article</div>
+    <div class="modal-sub">Paste any news article URL — we'll fetch the title, source and excerpt automatically. The article will appear in your feed and can be analysed immediately.</div>
+    <input class="modal-input" id="submit-url" type="url" placeholder="https://www.thehindu.com/news/cities/bangalore/..." onkeydown="if(event.key==='Enter')fetchAndPreview()">
+    <div class="modal-preview" id="submit-preview">
+      <div class="modal-preview-title" id="preview-title"></div>
+      <div class="modal-preview-meta" id="preview-meta"></div>
+      <div class="modal-preview-excerpt" id="preview-excerpt"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeSubmitModal()">Cancel</button>
+      <button class="modal-btn modal-btn-primary" id="fetch-btn" onclick="fetchAndPreview()">Fetch article</button>
+      <button class="modal-btn modal-btn-primary" id="confirm-btn" onclick="confirmSubmit()" style="display:none">Add to feed →</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const API = "https://web-production-343bf.up.railway.app";
@@ -558,6 +599,71 @@ function showToast(msg) {
 function updateSyncLabel() {
   const now = new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
   document.getElementById("sync-label").textContent = `Synced ${now}`;
+}
+
+// ── Submit modal ─────────────────────────────────────────────────────────────
+let previewedArticle = null;
+
+function openSubmitModal() {
+  document.getElementById("submit-modal").classList.add("show");
+  document.getElementById("submit-url").value = "";
+  document.getElementById("submit-preview").style.display = "none";
+  document.getElementById("fetch-btn").style.display = "inline-block";
+  document.getElementById("confirm-btn").style.display = "none";
+  document.getElementById("fetch-btn").textContent = "Fetch article";
+  document.getElementById("fetch-btn").disabled = false;
+  previewedArticle = null;
+  setTimeout(() => document.getElementById("submit-url").focus(), 100);
+}
+
+function closeSubmitModal(e) {
+  if (e && e.target !== document.getElementById("submit-modal")) return;
+  document.getElementById("submit-modal").classList.remove("show");
+}
+
+async function fetchAndPreview() {
+  const url = document.getElementById("submit-url").value.trim();
+  if (!url) { showToast("Please enter a URL"); return; }
+  const btn = document.getElementById("fetch-btn");
+  btn.disabled = true; btn.textContent = "Fetching…";
+  try {
+    const res  = await fetch(`${API}/api/articles/submit`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Fetch failed");
+    previewedArticle = data;
+    // show preview
+    document.getElementById("preview-title").textContent   = data.title || "";
+    document.getElementById("preview-meta").textContent    = `${data.source || ""} · ${data.location || "Bengaluru"} · ${data.category || ""}`;
+    document.getElementById("preview-excerpt").textContent = data.excerpt || "(no excerpt available)";
+    document.getElementById("submit-preview").style.display = "block";
+    if (data.message === "already_exists") {
+      btn.textContent = "Already in feed";
+      btn.disabled = true;
+      document.getElementById("confirm-btn").style.display = "none";
+      showToast("This article is already in your feed");
+    } else {
+      btn.style.display = "none";
+      document.getElementById("confirm-btn").style.display = "inline-block";
+    }
+  } catch(e) {
+    btn.disabled = false; btn.textContent = "Fetch article";
+    showToast("Error: " + e.message);
+  }
+}
+
+async function confirmSubmit() {
+  if (!previewedArticle) return;
+  document.getElementById("submit-modal").classList.remove("show");
+  showToast("Article added to feed ✓");
+  await fetchArticles(1);
+  // auto-select the new article in feed
+  if (previewedArticle.id) {
+    setTimeout(() => selectArticle(previewedArticle.id), 500);
+  }
 }
 
 fetchArticles(1);

@@ -179,6 +179,107 @@ def trigger_batch_analysis():
     analysis_job(); return {"status": "analysis batch submitted"}
 
 
+# ── Article submission ───────────────────────────────────────────────────────
+
+@app.post("/api/articles/submit")
+def submit_article(body: dict):
+    import hashlib, requests as req
+    from bs4 import BeautifulSoup
+    from urllib.parse import urlparse
+    from analyzer.classifier import classify
+
+    url = (body.get("url") or "").strip()
+    if not url or not url.startswith("http"):
+        raise HTTPException(status_code=400, detail="Valid URL required")
+
+    uh = hashlib.sha256(url.encode()).hexdigest()
+
+    session = get_session(engine)
+    try:
+        # dedup check
+        existing = session.query(Article).filter_by(url_hash=uh).first()
+        if existing:
+            return {**serialize_article(existing), "message": "already_exists"}
+
+        # fetch page
+        try:
+            headers = {"User-Agent": "Mozilla/5.0 (compatible; NammaBLRBot/1.0)"}
+            resp = req.get(url, headers=headers, timeout=15, allow_redirects=True)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+        except Exception as e:
+            raise HTTPException(status_code=422, detail=f"Could not fetch URL: {e}")
+
+        def og(name):
+            tag = soup.find("meta", property=f"og:{name}") or soup.find("meta", attrs={"name": f"og:{name}"})
+            return (tag.get("content") or "").strip() if tag else ""
+
+        def meta(name):
+            tag = soup.find("meta", attrs={"name": name})
+            return (tag.get("content") or "").strip() if tag else ""
+
+        title   = og("title") or (soup.title.string.strip() if soup.title else "") or url
+        excerpt = og("description") or meta("description") or ""
+        domain  = urlparse(url).netloc.replace("www.", "")
+        source_map = {
+            "thehindu.com":          "The Hindu",
+            "deccanherald.com":      "Deccan Herald",
+            "timesofindia.com":      "Times of India",
+            "newindianexpress.com":  "New Indian Express",
+            "thenewsminute.com":     "The News Minute",
+            "bengaluru.citizenmatters.in": "Citizen Matters",
+            "scroll.in":             "Scroll",
+            "thewire.in":            "The Wire",
+            "ndtv.com":              "NDTV",
+            "theprint.in":           "The Print",
+        }
+        source = source_map.get(domain, domain)
+
+        # parse date
+        pub_date = None
+        for attr in [("property","article:published_time"),("name","publishdate"),("name","publish-date")]:
+            tag = soup.find("meta", {attr[0]: attr[1]})
+            if tag and tag.get("content"):
+                try:
+                    from datetime import datetime
+                    pub_date = datetime.fromisoformat(tag["content"][:19])
+                    break
+                except: pass
+        if not pub_date:
+            pub_date = datetime.utcnow()
+
+        art_data = {
+            "title":        title[:500],
+            "url":          url,
+            "url_hash":     uh,
+            "source":       source,
+            "published_at": pub_date,
+            "excerpt":      excerpt[:500],
+            "raw_category": "",
+        }
+        art_data = classify(art_data)
+
+        row = Article(
+            url_hash     = uh,
+            title        = art_data["title"],
+            url          = url,
+            source       = source + " ★",
+            published_at = pub_date,
+            location     = art_data["location"],
+            category     = art_data["category"],
+            excerpt      = excerpt[:500],
+            is_new       = True,
+            saved        = False,
+        )
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        return {**serialize_article(row), "message": "added"}
+
+    finally:
+        session.close()
+
+
 # ── Analysis quota ───────────────────────────────────────────────────────────
 
 @app.get("/api/analysis-quota")
