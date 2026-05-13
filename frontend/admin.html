@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Namma BLR — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-light:#E1F5EE;--green-mid:#5DCAA5;--green-dark:#085041;
+  --amber-light:#FAEEDA;--amber:#854F0B;
+  --blue-light:#E6F1FB;--blue:#185FA5;
+  --red:#E24B4A;--red-light:#FCEBEB;
+  --bg:#F7F6F2;--bg2:#FFFFFF;--bg3:#EFEDE8;
+  --text:#1a1a18;--text2:#5a5a56;--text3:#9a9a94;
+  --border:#e8e6e0;--border2:#d4d2cc;
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.topnav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:12px;height:52px}
+.logo{font-family:var(--serif);font-size:17px}
+.logo span{font-style:italic;color:var(--green)}
+.admin-badge{font-size:10px;background:#1a1a18;color:#fff;padding:2px 8px;border-radius:4px;font-weight:500}
+.nav-links{display:flex;gap:4px;margin-left:auto}
+.nav-link{padding:6px 12px;border-radius:var(--radius-sm);font-size:12.5px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .12s;border:none;background:transparent;font-family:var(--sans)}
+.nav-link:hover{background:var(--bg3);color:var(--text)}
+.nav-link.active{background:var(--green-light);color:var(--green-dark);font-weight:500}
+.container{max-width:1000px;margin:0 auto;padding:28px 20px}
+.page-title{font-family:var(--serif);font-size:22px;margin-bottom:24px}
+
+/* stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:28px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.stat-value{font-size:24px;font-weight:500;color:var(--text)}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* sections */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px}
+.section-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-title{font-size:14px;font-weight:500}
+.section-body{padding:16px 18px}
+
+/* quota control */
+.quota-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.quota-row input{width:80px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);font-size:13px;font-family:var(--sans);outline:none;text-align:center}
+.quota-row input:focus{border-color:var(--green)}
+.invite-row{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.invite-row input{flex:1;max-width:300px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);font-size:13px;font-family:var(--sans);outline:none}
+.invite-row input:focus{border-color:var(--green)}
+.btn-sm{padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-family:var(--sans);cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .12s}
+.btn-sm:hover{background:var(--border2);color:var(--text)}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}
+.btn-green:hover{opacity:.88}
+.btn-red{background:var(--red-light);border-color:#F7C1C1;color:var(--red)}
+
+/* users table */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:10px 10px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.role-badge{font-size:9px;font-weight:500;padding:2px 7px;border-radius:3px}
+.role-admin{background:#1a1a18;color:#fff}
+.role-user{background:var(--bg3);color:var(--text2)}
+.online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px}
+
+/* actions */
+.action-row{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="logo">Namma <span>BLR</span></div>
+  <span class="admin-badge">ADMIN</span>
+  <div class="nav-links">
+    <a class="nav-link" href="/">News Feed</a>
+    <a class="nav-link" href="/keywords.html">Keywords</a>
+    <a class="nav-link active" href="/admin.html">Admin</a>
+    <button class="nav-link" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">Admin Dashboard</div>
+
+  <!-- Global stats -->
+  <div class="stat-grid" id="stat-grid"></div>
+
+  <!-- Quota & settings -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-title">App Settings</span>
+    </div>
+    <div class="section-body">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px;font-weight:500">Daily analysis quota</div>
+      <div class="quota-row">
+        <input type="number" id="quota-input" min="1" max="200" value="10">
+        <button class="btn-sm btn-green" onclick="saveQuota()">Save quota</button>
+        <span style="font-size:11px;color:var(--text3)" id="quota-status"></span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:16px;margin-bottom:10px;font-weight:500">Invite code</div>
+      <div class="invite-row">
+        <input type="text" id="invite-input" placeholder="Invite code">
+        <button class="btn-sm btn-green" onclick="saveInvite()">Update code</button>
+        <span style="font-size:11px;color:var(--text3)" id="invite-status"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual controls -->
+  <div class="section">
+    <div class="section-head"><span class="section-title">Manual Controls</span></div>
+    <div class="section-body">
+      <div class="action-row">
+        <button class="btn-sm btn-green" onclick="triggerScrape()">Run scrape now</button>
+        <button class="btn-sm btn-green" onclick="triggerAnalysis()">Run analysis now</button>
+        <span style="font-size:11px;color:var(--text3)" id="control-status"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users -->
+  <div class="section">
+    <div class="section-head">
+      <span class="section-title">Users</span>
+      <span style="font-size:11px;color:var(--text3)" id="user-count"></span>
+    </div>
+    <div class="section-body" style="padding:0;overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Last login</th>
+            <th>Bookmarks</th>
+            <th>Keywords</th>
+            <th>Analyses</th>
+            <th>Today</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = window.location.origin;
+
+// Auth guard — admin only
+const token = localStorage.getItem("blr_token");
+const role  = localStorage.getItem("blr_role");
+if (!token || role !== "admin") {
+  window.location.href = "/login.html";
+}
+
+const headers = () => ({
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${token}`
+});
+
+async function loadDashboard() {
+  await Promise.all([loadStats(), loadSettings(), loadUsers()]);
+}
+
+async function loadStats() {
+  try {
+    const res  = await fetch(`${API}/api/stats`, {headers: headers()});
+    const data = await res.json();
+    document.getElementById("stat-grid").innerHTML = `
+      <div class="stat-card"><div class="stat-label">Total articles</div><div class="stat-value">${data.total_articles}</div></div>
+      <div class="stat-card"><div class="stat-label">Analysed</div><div class="stat-value">${data.analysed}</div></div>
+      <div class="stat-card"><div class="stat-label">Quota used today</div><div class="stat-value">${data.quota_used}</div><div class="stat-sub">of ${data.quota_limit} / day</div></div>
+      <div class="stat-card"><div class="stat-label">Environment</div><div class="stat-value">${data.by_category.env||0}</div></div>
+      <div class="stat-card"><div class="stat-label">Legal</div><div class="stat-value">${data.by_category.legal||0}</div></div>
+      <div class="stat-card"><div class="stat-label">Govt directives</div><div class="stat-value">${data.by_category.govt||0}</div></div>
+    `;
+  } catch(e) { console.error(e); }
+}
+
+async function loadSettings() {
+  try {
+    const res  = await fetch(`${API}/api/admin/settings`, {headers: headers()});
+    const data = await res.json();
+    document.getElementById("quota-input").value  = data.settings.daily_quota || 10;
+    document.getElementById("invite-input").value = data.settings.invite_code || "";
+  } catch(e) { console.error(e); }
+}
+
+async function loadUsers() {
+  try {
+    const res  = await fetch(`${API}/api/admin/users`, {headers: headers()});
+    const data = await res.json();
+    const users = data.users || [];
+    document.getElementById("user-count").textContent = `${users.length} registered`;
+
+    document.getElementById("users-tbody").innerHTML = users.map(u => `
+      <tr>
+        <td style="font-weight:500;color:var(--text)">${esc(u.name)}</td>
+        <td>${esc(u.email)}</td>
+        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+        <td>${fmtDate(u.created_at)}</td>
+        <td>${u.last_login_at ? fmtDate(u.last_login_at) : '<span style="color:var(--text3)">Never</span>'}</td>
+        <td style="text-align:center">${u.bookmark_count}</td>
+        <td style="text-align:center">${u.keyword_count}</td>
+        <td style="text-align:center">${u.analysis_count}</td>
+        <td style="text-align:center;font-weight:${u.analyses_today>0?500:400};color:${u.analyses_today>0?'var(--green-dark)':'var(--text3)'}">${u.analyses_today}</td>
+      </tr>`).join("");
+  } catch(e) { console.error(e); }
+}
+
+async function saveQuota() {
+  const val = parseInt(document.getElementById("quota-input").value);
+  if (!val || val < 1) { showToast("Enter a valid number"); return; }
+  try {
+    await fetch(`${API}/api/admin/settings`, {
+      method: "POST", headers: headers(),
+      body: JSON.stringify({daily_quota: val})
+    });
+    document.getElementById("quota-status").textContent = "Saved ✓";
+    setTimeout(() => document.getElementById("quota-status").textContent = "", 2000);
+    showToast(`Daily quota set to ${val}`);
+    loadStats();
+  } catch(e) { showToast("Error: " + e.message); }
+}
+
+async function saveInvite() {
+  const val = document.getElementById("invite-input").value.trim();
+  if (!val) { showToast("Enter an invite code"); return; }
+  try {
+    await fetch(`${API}/api/admin/settings`, {
+      method: "POST", headers: headers(),
+      body: JSON.stringify({invite_code: val})
+    });
+    document.getElementById("invite-status").textContent = "Saved ✓";
+    setTimeout(() => document.getElementById("invite-status").textContent = "", 2000);
+    showToast("Invite code updated");
+  } catch(e) { showToast("Error: " + e.message); }
+}
+
+async function triggerScrape() {
+  document.getElementById("control-status").textContent = "Scraping…";
+  try {
+    await fetch(`${API}/api/admin/scrape`, {method:"POST", headers: headers()});
+    document.getElementById("control-status").textContent = "Scrape done ✓";
+    showToast("Scrape completed");
+    setTimeout(() => { document.getElementById("control-status").textContent = ""; loadStats(); }, 2000);
+  } catch(e) { showToast("Error: " + e.message); document.getElementById("control-status").textContent = ""; }
+}
+
+async function triggerAnalysis() {
+  document.getElementById("control-status").textContent = "Analysing…";
+  try {
+    await fetch(`${API}/api/admin/analyze`, {method:"POST", headers: headers()});
+    document.getElementById("control-status").textContent = "Analysis done ✓";
+    showToast("Analysis batch submitted");
+    setTimeout(() => { document.getElementById("control-status").textContent = ""; loadStats(); }, 2000);
+  } catch(e) { showToast("Error: " + e.message); document.getElementById("control-status").textContent = ""; }
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "/login.html";
+}
+
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function fmtDate(s) {
+  if (!s) return "";
+  return new Date(s).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"2-digit"});
+}
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+loadDashboard();
+setInterval(loadStats, 60000);
+</script>
+</body>
+</html>
