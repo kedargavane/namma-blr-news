@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Namma BLR — Feature Requests</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-light:#E1F5EE;--green-mid:#5DCAA5;--green-dark:#085041;
+  --amber-light:#FAEEDA;--amber:#854F0B;
+  --blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --purple-light:#EEEDFE;--purple:#534AB7;
+  --red:#E24B4A;--red-light:#FCEBEB;
+  --grey-light:#EFEDE8;--grey:#888780;
+  --bg:#F7F6F2;--bg2:#FFFFFF;--bg3:#EFEDE8;
+  --text:#1a1a18;--text2:#5a5a56;--text3:#9a9a94;
+  --border:#e8e6e0;--border2:#d4d2cc;
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* nav */
+.topnav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:12px;height:52px}
+.logo{font-family:var(--serif);font-size:17px;text-decoration:none;color:var(--text)}
+.logo span{font-style:italic;color:var(--green)}
+.nav-links{display:flex;gap:4px;margin-left:auto;align-items:center}
+.nav-link{padding:6px 12px;border-radius:var(--radius-sm);font-size:12.5px;color:var(--text2);cursor:pointer;text-decoration:none;transition:all .12s;border:none;background:transparent;font-family:var(--sans)}
+.nav-link:hover{background:var(--bg3);color:var(--text)}
+.nav-link.active{background:var(--green-light);color:var(--green-dark);font-weight:500}
+.user-pill{font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:4px 10px;color:var(--text2)}
+
+/* layout */
+.container{max-width:740px;margin:0 auto;padding:36px 20px 60px}
+.page-header{margin-bottom:32px}
+.page-title{font-family:var(--serif);font-size:26px;color:var(--text);margin-bottom:6px}
+.page-sub{font-size:13px;color:var(--text3);line-height:1.6}
+
+/* submit form */
+.submit-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:32px}
+.submit-card-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.form-input{width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--sans);outline:none;transition:border .15s}
+.form-input:focus{border-color:var(--green)}
+textarea.form-input{resize:vertical;min-height:80px;line-height:1.6}
+.form-hint{font-size:11px;color:var(--text3);margin-top:4px}
+.submit-btn{padding:9px 20px;border-radius:var(--radius-sm);background:var(--green);border:none;color:#fff;font-size:13px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:opacity .15s}
+.submit-btn:hover{opacity:.88}
+.submit-btn:disabled{opacity:.5;cursor:default}
+.success-msg{font-size:12px;color:var(--green-dark);background:var(--green-light);border:1px solid var(--green-mid);border-radius:var(--radius-sm);padding:8px 12px;margin-top:10px;display:none}
+
+/* filters */
+.filter-row{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-label{font-size:11px;color:var(--text3);margin-right:2px}
+.filter-btn{padding:5px 12px;border-radius:16px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .12s}
+.filter-btn.on{background:var(--green-light);border-color:var(--green-mid);color:var(--green-dark);font-weight:500}
+.count-badge{font-size:10px;background:var(--bg3);color:var(--text3);padding:1px 6px;border-radius:8px;margin-left:4px}
+
+/* feature cards */
+.features-list{display:flex;flex-direction:column;gap:12px}
+.feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .12s}
+.feature-card:hover{border-color:var(--border2)}
+.feature-card-body{padding:18px 20px}
+.feature-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
+.status-badge{font-size:10px;font-weight:500;padding:3px 9px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.status-submitted{background:var(--blue-light);color:var(--blue-dark)}
+.status-under_review{background:var(--purple-light);color:var(--purple)}
+.status-in_progress{background:var(--amber-light);color:var(--amber)}
+.status-completed{background:var(--green-light);color:var(--green-dark)}
+.status-declined{background:var(--red-light);color:var(--red)}
+.feature-title{font-size:15px;font-weight:500;color:var(--text);line-height:1.4}
+.feature-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.feature-meta{font-size:11px;color:var(--text3);display:flex;gap:12px;flex-wrap:wrap}
+
+/* admin comment */
+.admin-comment{background:var(--bg3);border-top:1px solid var(--border);padding:14px 20px;display:flex;gap:10px;align-items:flex-start}
+.admin-avatar{width:28px;height:28px;border-radius:50%;background:#085041;color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.admin-comment-body{}
+.admin-comment-label{font-size:10px;font-weight:500;color:var(--green-dark);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.admin-comment-text{font-size:12.5px;color:var(--text2);line-height:1.7}
+
+/* admin edit panel */
+.admin-edit{background:var(--bg3);border-top:1px solid var(--border);padding:14px 20px;display:none}
+.admin-edit.open{display:block}
+.admin-edit-title{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.edit-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.edit-row label{font-size:12px;color:var(--text2);flex-shrink:0}
+.status-select{padding:6px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;outline:none}
+.status-select:focus{border-color:var(--green)}
+.comment-area{width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:12.5px;font-family:var(--sans);outline:none;resize:vertical;min-height:70px;line-height:1.6;margin-bottom:8px}
+.comment-area:focus{border-color:var(--green)}
+.edit-actions{display:flex;gap:6px}
+.btn-save{padding:6px 14px;border-radius:var(--radius-sm);background:var(--green);border:none;color:#fff;font-size:12px;font-family:var(--sans);font-weight:500;cursor:pointer}
+.btn-save:hover{opacity:.88}
+.btn-cancel{padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer}
+.btn-edit{padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-family:var(--sans);cursor:pointer;margin-left:auto;flex-shrink:0}
+.btn-edit:hover{background:var(--bg3);color:var(--text)}
+.btn-del{padding:4px 10px;border-radius:var(--radius-sm);border:1px solid #F7C1C1;background:transparent;color:var(--red);font-size:11px;font-family:var(--sans);cursor:pointer}
+.btn-del:hover{background:var(--red-light)}
+
+/* empty */
+.empty{text-align:center;padding:48px 20px;color:var(--text3);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:10px}
+
+/* toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+
+.status-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.completed-check{color:var(--green);font-size:16px;margin-right:2px}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="logo" href="/">Namma <span>BLR</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="/">News Feed</a>
+    <a class="nav-link" href="/keywords.html">Keywords</a>
+    <a class="nav-link active" href="/features.html">Feature Requests</a>
+    <span class="user-pill" id="user-pill"></span>
+    <button class="nav-link" id="admin-link" onclick="window.location.href='/admin.html'" style="display:none">Admin</button>
+    <button class="nav-link" onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div class="page-title">Feature Requests</div>
+    <div class="page-sub">Suggest new features or improvements. The admin team reviews every request and posts updates on status and implementation details.</div>
+  </div>
+
+  <!-- Submit form -->
+  <div class="submit-card">
+    <div class="submit-card-title">💡 Suggest a feature</div>
+    <div class="form-group">
+      <label class="form-label">Feature title <span style="color:var(--red)">*</span></label>
+      <input class="form-input" type="text" id="feat-title" placeholder="e.g. Email digest of top stories every morning" maxlength="200">
+      <div class="form-hint">Keep it short and descriptive — max 200 characters</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input" id="feat-desc" placeholder="Describe what you'd like to see and why it would be useful…"></textarea>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitFeature()">Submit request</button>
+    <div class="success-msg" id="success-msg">✓ Feature request submitted! We'll review it soon.</div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <span class="filter-label">Filter:</span>
+    <button class="filter-btn on" data-f="all" onclick="setFilter('all',this)">All<span class="count-badge" id="cnt-all">0</span></button>
+    <button class="filter-btn" data-f="submitted" onclick="setFilter('submitted',this)">Submitted<span class="count-badge" id="cnt-submitted">0</span></button>
+    <button class="filter-btn" data-f="under_review" onclick="setFilter('under_review',this)">Under review<span class="count-badge" id="cnt-under_review">0</span></button>
+    <button class="filter-btn" data-f="in_progress" onclick="setFilter('in_progress',this)">In progress<span class="count-badge" id="cnt-in_progress">0</span></button>
+    <button class="filter-btn" data-f="completed" onclick="setFilter('completed',this)">Completed<span class="count-badge" id="cnt-completed">0</span></button>
+    <button class="filter-btn" data-f="declined" onclick="setFilter('declined',this)">Declined<span class="count-badge" id="cnt-declined">0</span></button>
+  </div>
+
+  <!-- List -->
+  <div class="features-list" id="features-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API       = window.location.origin;
+const token     = localStorage.getItem("blr_token");
+const userRole  = localStorage.getItem("blr_role");
+const userName  = localStorage.getItem("blr_name");
+const userId    = (() => { try { return JSON.parse(localStorage.getItem("blr_user")||"{}").id; } catch(e){ return null; }})();
+const isAdmin   = userRole === "admin";
+
+// Auth guard
+if (!token) { window.location.href = "/login.html"; }
+
+// Init nav
+document.getElementById("user-pill").textContent = userName || "";
+if (isAdmin) document.getElementById("admin-link").style.display = "inline-block";
+
+function logout() { localStorage.clear(); window.location.href = "/login.html"; }
+
+function authHeaders() {
+  return {"Content-Type":"application/json","Authorization":`Bearer ${token}`};
+}
+
+const STATUS_LABELS = {
+  submitted:    "Submitted",
+  under_review: "Under review",
+  in_progress:  "In progress",
+  completed:    "Completed",
+  declined:     "Declined",
+};
+const STATUS_ICONS = {
+  submitted:    "📥",
+  under_review: "🔍",
+  in_progress:  "🔧",
+  completed:    "✅",
+  declined:     "❌",
+};
+
+let allFeatures  = [];
+let activeFilter = "all";
+
+async function loadFeatures() {
+  try {
+    const res  = await fetch(`${API}/api/features`, {headers: authHeaders()});
+    if (!res.ok) { if(res.status===401) window.location.href="/login.html"; return; }
+    const data = await res.json();
+    allFeatures = data.features || [];
+    updateCounts();
+    renderFeatures();
+  } catch(e) {
+    document.getElementById("features-list").innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div>Could not load feature requests</div>`;
+  }
+}
+
+function updateCounts() {
+  const statuses = ["submitted","under_review","in_progress","completed","declined"];
+  document.getElementById("cnt-all").textContent = allFeatures.length;
+  statuses.forEach(s => {
+    const el = document.getElementById("cnt-"+s);
+    if (el) el.textContent = allFeatures.filter(f=>f.status===s).length;
+  });
+}
+
+function renderFeatures() {
+  const list = activeFilter === "all"
+    ? allFeatures
+    : allFeatures.filter(f => f.status === activeFilter);
+
+  const el = document.getElementById("features-list");
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">💭</div>No feature requests in this category yet</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(f => {
+    const date = f.created_at
+      ? new Date(f.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})
+      : "";
+    const updDate = f.updated_at && f.updated_at !== f.created_at
+      ? new Date(f.updated_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})
+      : null;
+
+    const adminCommentHTML = f.admin_comment ? `
+      <div class="admin-comment">
+        <div class="admin-avatar">A</div>
+        <div class="admin-comment-body">
+          <div class="admin-comment-label">Admin response${updDate?` · ${updDate}`:""}</div>
+          <div class="admin-comment-text">${esc(f.admin_comment)}</div>
+        </div>
+      </div>` : "";
+
+    const adminEditHTML = isAdmin ? `
+      <div class="admin-edit" id="edit-${f.id}">
+        <div class="admin-edit-title">Update this request</div>
+        <div class="edit-row">
+          <label>Status:</label>
+          <select class="status-select" id="sel-${f.id}">
+            <option value="submitted" ${f.status==="submitted"?"selected":""}>Submitted</option>
+            <option value="under_review" ${f.status==="under_review"?"selected":""}>Under review</option>
+            <option value="in_progress" ${f.status==="in_progress"?"selected":""}>In progress</option>
+            <option value="completed" ${f.status==="completed"?"selected":""}>Completed</option>
+            <option value="declined" ${f.status==="declined"?"selected":""}>Declined</option>
+          </select>
+        </div>
+        <textarea class="comment-area" id="com-${f.id}" placeholder="Write a comment for the user — explain the status, ask for more info, or describe what was built…">${f.admin_comment||""}</textarea>
+        <div class="edit-actions">
+          <button class="btn-save" onclick="saveUpdate(${f.id})">Save</button>
+          <button class="btn-cancel" onclick="closeEdit(${f.id})">Cancel</button>
+          <button class="btn-del" onclick="deleteFeature(${f.id})">Delete</button>
+        </div>
+      </div>` : "";
+
+    const adminActionsHTML = isAdmin ? `
+      <button class="btn-edit" onclick="openEdit(${f.id})">Edit ▾</button>` : "";
+
+    return `
+      <div class="feature-card" id="fc-${f.id}">
+        <div class="feature-card-body">
+          <div class="feature-card-top">
+            <span class="status-badge status-${f.status}">${STATUS_ICONS[f.status]} ${STATUS_LABELS[f.status]||f.status}</span>
+            <div style="flex:1">
+              <div class="feature-title">${esc(f.title)}</div>
+            </div>
+            ${adminActionsHTML}
+          </div>
+          ${f.description ? `<div class="feature-desc">${esc(f.description)}</div>` : ""}
+          <div class="feature-meta">
+            <span>Submitted ${date}</span>
+            ${f.submitter_name ? `<span>by ${esc(f.submitter_name)}</span>` : "<span>by team</span>"}
+          </div>
+        </div>
+        ${adminCommentHTML}
+        ${adminEditHTML}
+      </div>`;
+  }).join("");
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("on", b===btn));
+  renderFeatures();
+}
+
+function openEdit(id) {
+  document.querySelectorAll(".admin-edit").forEach(el => el.classList.remove("open"));
+  document.getElementById("edit-"+id)?.classList.add("open");
+}
+
+function closeEdit(id) {
+  document.getElementById("edit-"+id)?.classList.remove("open");
+}
+
+async function saveUpdate(id) {
+  const status  = document.getElementById("sel-"+id).value;
+  const comment = document.getElementById("com-"+id).value.trim();
+  try {
+    const res  = await fetch(`${API}/api/features/${id}`, {
+      method: "PATCH", headers: authHeaders(),
+      body: JSON.stringify({status, admin_comment: comment})
+    });
+    if (!res.ok) throw new Error("Update failed");
+    const updated = await res.json();
+    const idx = allFeatures.findIndex(f=>f.id===id);
+    if (idx >= 0) allFeatures[idx] = updated;
+    updateCounts();
+    renderFeatures();
+    showToast("Updated ✓");
+  } catch(e) {
+    showToast("Error: " + e.message);
+  }
+}
+
+async function deleteFeature(id) {
+  if (!confirm("Delete this feature request?")) return;
+  try {
+    const res = await fetch(`${API}/api/features/${id}`, {
+      method:"DELETE", headers: authHeaders()
+    });
+    if (!res.ok) throw new Error("Delete failed");
+    allFeatures = allFeatures.filter(f=>f.id!==id);
+    updateCounts();
+    renderFeatures();
+    showToast("Deleted");
+  } catch(e) {
+    showToast("Error: " + e.message);
+  }
+}
+
+async function submitFeature() {
+  const title = document.getElementById("feat-title").value.trim();
+  const desc  = document.getElementById("feat-desc").value.trim();
+  if (!title) { showToast("Please enter a title"); return; }
+
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true; btn.textContent = "Submitting…";
+
+  try {
+    const res  = await fetch(`${API}/api/features`, {
+      method:"POST", headers: authHeaders(),
+      body: JSON.stringify({title, description: desc})
+    });
+    if (!res.ok) { const d=await res.json(); throw new Error(d.detail||"Error"); }
+    const newFeat = await res.json();
+    allFeatures.unshift(newFeat);
+    document.getElementById("feat-title").value = "";
+    document.getElementById("feat-desc").value  = "";
+    document.getElementById("success-msg").style.display = "block";
+    setTimeout(() => document.getElementById("success-msg").style.display="none", 4000);
+    updateCounts();
+    renderFeatures();
+  } catch(e) {
+    showToast("Error: " + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "Submit request";
+  }
+}
+
+function esc(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+loadFeatures();
+</script>
+</body>
+</html>

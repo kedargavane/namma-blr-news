@@ -1,27 +1,16 @@
 """
 db/models.py — All SQLAlchemy models.
-
-Tables:
-  articles      — scraped news articles
-  analysis      — Claude AI analysis per article
-  keywords      — scraper keyword pool
-  scrape_log    — scrape run history
-  users         — registered users (NEW)
-  user_bookmarks — per-user bookmarks (NEW)
-  app_settings  — admin-controlled settings like daily quota (NEW)
-
-Migration: get_engine() runs ALTER TABLE for any new columns so
-the existing production SQLite DB is never wiped.
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, JSON, ForeignKey, text
+from sqlalchemy import (
+    create_engine, Column, Integer, String, Text,
+    Boolean, DateTime, JSON, ForeignKey, text
+)
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 
 Base = declarative_base()
 
-
-# ── Existing tables ────────────────────────────────────────────────────────────
 
 class Article(Base):
     __tablename__ = "articles"
@@ -36,7 +25,7 @@ class Article(Base):
     category      = Column(String(32))
     excerpt       = Column(Text)
     is_new        = Column(Boolean, default=True)
-    saved         = Column(Boolean, default=False)   # kept for backward compat
+    saved         = Column(Boolean, default=False)
     analysis      = relationship("Analysis", back_populates="article", uselist=False)
     bookmarks     = relationship("UserBookmark", back_populates="article")
 
@@ -47,7 +36,7 @@ class Analysis(Base):
     article_id        = Column(Integer, ForeignKey("articles.id"), unique=True)
     analysed_at       = Column(DateTime, default=datetime.utcnow)
     model_used        = Column(String(64))
-    status            = Column(String(16), default="pending")  # pending|done|failed
+    status            = Column(String(16), default="pending")
     severity          = Column(String(16))
     severity_note     = Column(Text)
     laws              = Column(JSON)
@@ -57,24 +46,24 @@ class Analysis(Base):
     entities          = Column(JSON)
     global_comparison = Column(JSON)
     timeline          = Column(JSON)
-    key_personnel     = Column(JSON)   # NEW: [{name, role, organisation}]
+    key_personnel     = Column(JSON)
     raw_response      = Column(Text)
-    analysed_by       = Column(Integer, ForeignKey("users.id"), nullable=True)  # NEW
+    analysed_by       = Column(Integer, ForeignKey("users.id"), nullable=True)
     article           = relationship("Article", back_populates="analysis")
     analyst           = relationship("User", back_populates="analyses")
 
 
 class Keyword(Base):
     __tablename__ = "keywords"
-    id              = Column(Integer, primary_key=True)
-    word            = Column(String(120), unique=True, nullable=False, index=True)
-    category        = Column(String(32), default="")
-    enabled         = Column(Boolean, default=True)
-    is_default      = Column(Boolean, default=False)
-    hit_count       = Column(Integer, default=0)
-    added_at        = Column(DateTime, default=datetime.utcnow)
-    created_by      = Column(Integer, ForeignKey("users.id"), nullable=True)  # NEW
-    creator         = relationship("User", back_populates="keywords")
+    id         = Column(Integer, primary_key=True)
+    word       = Column(String(120), unique=True, nullable=False, index=True)
+    category   = Column(String(32), default="")
+    enabled    = Column(Boolean, default=True)
+    is_default = Column(Boolean, default=False)
+    hit_count  = Column(Integer, default=0)
+    added_at   = Column(DateTime, default=datetime.utcnow)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    creator    = relationship("User", back_populates="keywords")
 
 
 class ScrapeLog(Base):
@@ -86,22 +75,20 @@ class ScrapeLog(Base):
     errors       = Column(Text)
 
 
-# ── New tables ────────────────────────────────────────────────────────────────
-
 class User(Base):
     __tablename__ = "users"
     id            = Column(Integer, primary_key=True)
     email         = Column(String(200), unique=True, nullable=False, index=True)
     name          = Column(String(120), nullable=False)
     password_hash = Column(String(256), nullable=False)
-    role          = Column(String(16), default="user")   # user | admin
+    role          = Column(String(16), default="user")
     is_active     = Column(Boolean, default=True)
     created_at    = Column(DateTime, default=datetime.utcnow)
     last_login_at = Column(DateTime, nullable=True)
-
-    bookmarks  = relationship("UserBookmark", back_populates="user")
-    keywords   = relationship("Keyword", back_populates="creator")
-    analyses   = relationship("Analysis", back_populates="analyst")
+    bookmarks        = relationship("UserBookmark", back_populates="user")
+    keywords         = relationship("Keyword", back_populates="creator")
+    analyses         = relationship("Analysis", back_populates="analyst")
+    feature_requests = relationship("FeatureRequest", back_populates="submitter")
 
 
 class UserBookmark(Base):
@@ -110,7 +97,6 @@ class UserBookmark(Base):
     user_id       = Column(Integer, ForeignKey("users.id"), nullable=False)
     article_id    = Column(Integer, ForeignKey("articles.id"), nullable=False)
     bookmarked_at = Column(DateTime, default=datetime.utcnow)
-
     user    = relationship("User", back_populates="bookmarks")
     article = relationship("Article", back_populates="bookmarks")
 
@@ -121,7 +107,19 @@ class AppSetting(Base):
     value = Column(Text, nullable=False)
 
 
-# ── Engine & session ──────────────────────────────────────────────────────────
+class FeatureRequest(Base):
+    __tablename__ = "feature_requests"
+    id            = Column(Integer, primary_key=True)
+    title         = Column(String(200), nullable=False)
+    description   = Column(Text)
+    status        = Column(String(20), default="submitted")
+    # submitted | under_review | in_progress | completed | declined
+    admin_comment = Column(Text)
+    submitted_by  = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow)
+    submitter     = relationship("User", back_populates="feature_requests")
+
 
 def get_engine(db_path="blr_news.db"):
     engine = create_engine(f"sqlite:///{db_path}", echo=False)
@@ -131,13 +129,14 @@ def get_engine(db_path="blr_news.db"):
 
 
 def _migrate(engine):
-    """Add new columns to existing tables without dropping data."""
     migrations = [
-        ("analysis", "global_comparison", "JSON"),
-        ("analysis", "timeline",          "JSON"),
-        ("analysis", "key_personnel",     "JSON"),
-        ("analysis", "analysed_by",       "INTEGER"),
-        ("keywords", "created_by",        "INTEGER"),
+        ("analysis",         "global_comparison", "JSON"),
+        ("analysis",         "timeline",          "JSON"),
+        ("analysis",         "key_personnel",     "JSON"),
+        ("analysis",         "analysed_by",       "INTEGER"),
+        ("keywords",         "created_by",        "INTEGER"),
+        ("feature_requests", "admin_comment",     "TEXT"),
+        ("feature_requests", "updated_at",        "DATETIME"),
     ]
     with engine.connect() as conn:
         for table, col, col_type in migrations:
@@ -145,15 +144,13 @@ def _migrate(engine):
                 conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
                 conn.commit()
             except Exception:
-                pass  # column already exists
+                pass
 
 
 def get_session(engine):
     Session = sessionmaker(bind=engine)
     return Session()
 
-
-# ── Seed data ─────────────────────────────────────────────────────────────────
 
 DEFAULT_KEYWORDS = [
     ("bengaluru","env"),("bangalore","env"),("lake","env"),("wetland","env"),
@@ -176,8 +173,7 @@ DEFAULT_KEYWORDS = [
 
 
 def seed_keywords(session):
-    existing = session.query(Keyword).count()
-    if existing > 0:
+    if session.query(Keyword).count() > 0:
         return
     for word, cat in DEFAULT_KEYWORDS:
         session.add(Keyword(word=word, category=cat, enabled=True, is_default=True))
@@ -185,7 +181,6 @@ def seed_keywords(session):
 
 
 def seed_admin(session):
-    """Create admin user and default app settings on first run."""
     import os, bcrypt
     admin_email    = os.environ.get("ADMIN_EMAIL", "kedar.gavane@gmail.com")
     admin_password = os.environ.get("ADMIN_PASSWORD", "nammanews26")
@@ -198,12 +193,41 @@ def seed_admin(session):
         ))
         session.commit()
 
-    # default app settings
     defaults = {
-        "daily_quota":   "10",
-        "invite_code":   os.environ.get("INVITE_CODE", "NammaBLR-2026"),
+        "daily_quota": "10",
+        "invite_code": os.environ.get("INVITE_CODE", "NammaBLR-2026"),
     }
     for key, val in defaults.items():
         if not session.query(AppSetting).filter_by(key=key).first():
             session.add(AppSetting(key=key, value=val))
+    session.commit()
+
+
+SEED_FEATURES = [
+    {
+        "title": "Individual login for each user",
+        "description": "Each user should have their own account with login, bookmarks, and keyword tracking.",
+        "status": "completed",
+        "admin_comment": "Deployed. Users can register with an invite code, log in securely, and manage their own bookmarks and keywords independently. The admin dashboard tracks all user activity, analyses run, and keywords added.",
+    },
+    {
+        "title": "Key personnel cited in articles",
+        "description": "When an article mentions officials, judges, or activists by name, the analysis should extract and display their name, role, and organisation.",
+        "status": "completed",
+        "admin_comment": "Deployed. The AI analysis panel now includes a Key Personnel section that extracts named officials, judges, and activists from each article — showing their full name, role, and organisation as profile cards.",
+    },
+]
+
+
+def seed_features(session):
+    if session.query(FeatureRequest).count() > 0:
+        return
+    for f in SEED_FEATURES:
+        session.add(FeatureRequest(
+            title=f["title"],
+            description=f["description"],
+            status=f["status"],
+            admin_comment=f["admin_comment"],
+            submitted_by=None,
+        ))
     session.commit()

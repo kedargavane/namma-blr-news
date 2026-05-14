@@ -60,6 +60,7 @@ from analyzer.ai_analyzer import (
     analyse_single, write_analysis, get_daily_quota, get_todays_count
 )
 from api.auth import create_token, get_current_user, get_optional_user, get_admin_user
+from api.features_routes import router as features_router
 from scheduler.scheduler import start_scheduler, scrape_job, analysis_job
 from config import CONFIG
 
@@ -80,6 +81,8 @@ async def lifespan(app: FastAPI):
     try:
         seed_keywords(session)
         seed_admin(session)
+        from db.models import seed_features
+        seed_features(session)
     finally:
         session.close()
 
@@ -98,6 +101,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Namma BLR News API", version="2.0.0", lifespan=lifespan)
 
+app.include_router(features_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -712,3 +716,7 @@ def serve_keywords():
 @app.get("/admin.html")
 def serve_admin():
     return _fe("admin.html")
+
+@app.get("/features.html")
+def serve_features():
+    return _fe("features.html")

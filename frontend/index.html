@@ -183,6 +183,7 @@ html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--t
       <span class="sync-dot" title="Live"></span>
       <button class="nav-btn nav-btn-green" onclick="openSubmitModal()" id="add-btn" style="display:none">+ Add article</button>
       <a class="nav-btn" href="/keywords.html" id="kw-btn" style="display:none">⚙ Keywords</a>
+      <a class="nav-btn" href="/features.html" id="feat-btn" style="display:none">💡 Features</a>
       <a class="nav-btn" href="/admin.html" id="admin-btn" style="display:none">Admin</a>
       <!-- user menu -->
       <div class="user-menu-wrap" id="user-menu-wrap" style="display:none">
@@ -306,6 +307,7 @@ function initAuth() {
     document.getElementById("login-btn").style.display = "none";
     document.getElementById("add-btn").style.display = "inline-flex";
     document.getElementById("kw-btn").style.display = "inline-flex";
+    const fb=document.getElementById("feat-btn"); if(fb) fb.style.display="inline-flex";
     document.getElementById("user-menu-wrap").style.display = "inline-block";
     document.getElementById("user-btn").textContent = userName.split(" ")[0] + " ▾";
     document.getElementById("user-email-display").textContent =
