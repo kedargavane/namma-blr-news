@@ -276,6 +276,9 @@ const PER  = 12;
 
 // ── Auth state ────────────────────────────────────────────────────────────────
 const token   = localStorage.getItem("blr_token");
+
+// Auth guard — redirect to login if not authenticated
+if (!token) { window.location.href = "/login.html"; }
 const userName = localStorage.getItem("blr_name");
 const userRole = localStorage.getItem("blr_role");
 const userId  = (() => { try { return JSON.parse(localStorage.getItem("blr_user"))?.id; } catch(e) { return null; } })();
